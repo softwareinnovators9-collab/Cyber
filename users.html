@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CyberShield - User Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="users.css"/>
+</head>
+<body>
+
+<!-- ── LOGIN PAGE ──────────────────────────────────────────────────── -->
+<div id="page-login" class="page active auth-page">
+  <div class="auth-bg">
+    <div class="auth-grid"></div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon"><i class="fas fa-shield-halved"></i></span>
+      <div>
+        <h1>CyberShield</h1>
+        <p>User Management</p>
+      </div>
+    </div>
+    <form id="loginForm" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="loginEmail">Email Address</label>
+        <div class="input-wrap">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="loginEmail" placeholder="admin@cybershield.io" required autocomplete="email"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="loginPassword" placeholder="•••••••" required autocomplete="current-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePassword('loginPassword')"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+      <div id="loginError" class="alert-msg error hidden"></div>
+      <button type="submit" class="btn-primary btn-full" id="loginBtn">
+        <span class="btn-text">Authenticate</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </form>
+    <p class="auth-hint">Demo: admin@cybershield.io / Admin@CyberShield1</p>
+  </div>
+</div>
+
+<!-- ── APP SHELL ───────────────────────────────────────────────────── -->
+<div id="app-shell" class="hidden">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <span class="logo-icon sm"><i class="fas fa-shield-halved"></i></span>
+      <span class="sidebar-brand">CyberShield</span>
+      <button id="sidebarToggle" class="sidebar-close"><i class="fas fa-times"></i></button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="users">
+        <i class="fas fa-users-cog"></i><span>Users</span>
+      </a>
+      <a href="#" class="nav-item" data-page="dashboard">
+        <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="devices">
+        <i class="fas fa-server"></i><span>Devices</span>
+        <span class="nav-badge" id="badge-devices">15</span>
+      </a>
+      <a href="#" class="nav-item" data-page="threats">
+        <i class="fas fa-bug"></i><span>Threats</span>
+        <span class="nav-badge danger" id="badge-threats">3</span>
+      </a>
+      <a href="#" class="nav-item" data-page="incidents">
+        <i class="fas fa-fire-flame-curved"></i><span>Incidents</span>
+        <span class="nav-badge warning" id="badge-incidents">2</span>
+      </a>
+      <a href="#" class="nav-item" data-page="audit">
+        <i class="fas fa-clipboard-list"></i><span>Audit Logs</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info" id="sidebarUser">
+        <div class="user-avatar"><i class="fas fa-user"></i></div>
+        <div class="user-details">
+          <div class="user-name">Admin User</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="App.logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrap">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <button id="menuToggle" class="menu-toggle"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title" id="pageTitle">Users</div>
+      <div class="topbar-actions">
+        <button class="btn-icon" onclick="App.toggleNotifications()">
+          <i class="fas fa-bell"></i>
+          <span class="notification-dot"></span>
+        </button>
+        <button class="btn-icon" onclick="App.toggleTheme()">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="main-content" id="pageContent">
+      <!-- Users Section -->
+      <div id="page-users" class="page-section active">
+        <!-- Users content will be loaded here -->
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Notifications Panel -->
+<div id="notificationsPanel" class="notifications-panel hidden">
+  <div class="panel-header">
+    <h3>Notifications</h3>
+    <button class="btn-icon" onclick="App.toggleNotifications()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="panel-content" id="notificationsList">
+    <!-- Notifications will be loaded here -->
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-header">
+      <h3 id="modal-title">Modal Title</h3>
+      <button class="btn-icon" onclick="Modal.close()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Modal content -->
+    </div>
+    <div class="modal-footer" id="modal-footer">
+      <!-- Modal actions -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="users.js"></script>
+</body>
+</html>
