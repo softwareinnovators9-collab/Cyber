@@ -68,14 +68,14 @@ const PageTracker = {
     const stats = this.getAllStats();
     const dataStr = JSON.stringify(stats, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
+
     const link = document.createElement('a');
     link.setAttribute('href', dataUri);
-    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0,10)}.json`);
+    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     Toast.show('Stats exported as JSON!', 'success');
   },
 
@@ -83,7 +83,7 @@ const PageTracker = {
   showRawJSON() {
     const stats = this.getAllStats();
     const jsonString = JSON.stringify(stats, null, 2);
-    
+
     Modal.open('Raw Page Stats JSON', `
       <pre style="background:#0f1318; padding:16px; border-radius:8px; overflow:auto; max-height:400px; font-family:monospace; font-size:13px; color:#94a3b8;">
 ${escHtml(jsonString)}
@@ -116,36 +116,36 @@ const MockData = {
     email: 'admin@cybershield.io',
     role: 'admin'
   },
-  
+
   devices: [
     { id: 1, uuid: 'dev-1', device_name: 'Server-01', device_type: 'server', ip_address: '192.168.1.100', status: 'online', risk_score: 25, owner_name: 'Admin User', open_threats: 2 },
     { id: 2, uuid: 'dev-2', device_name: 'Workstation-01', device_type: 'workstation', ip_address: '192.168.1.101', status: 'offline', risk_score: 45, owner_name: 'Admin User', open_threats: 0 },
     { id: 3, uuid: 'dev-3', device_name: 'Mobile-01', device_type: 'mobile', ip_address: '192.168.1.102', status: 'online', risk_score: 15, owner_name: 'Admin User', open_threats: 1 }
   ],
-  
+
   threats: [
     { id: 1, uuid: 'threat-1', title: 'Suspicious Login Attempt', severity: 'high', category: 'intrusion', status: 'open', device_name: 'Server-01', detected_at: new Date().toISOString() },
     { id: 2, uuid: 'threat-2', title: 'Malware Detected', severity: 'critical', category: 'malware', status: 'open', device_name: 'Workstation-01', detected_at: new Date(Date.now() - 3600000).toISOString() },
     { id: 3, uuid: 'threat-3', title: 'Phishing Email', severity: 'medium', category: 'phishing', status: 'investigating', device_name: 'Mobile-01', detected_at: new Date(Date.now() - 7200000).toISOString() }
   ],
-  
+
   incidents: [
     { id: 1, uuid: 'inc-1', title: 'Security Incident #1', severity: 'high', status: 'open', created_by_name: 'Admin User', created_at: new Date().toISOString() },
     { id: 2, uuid: 'inc-2', title: 'Data Breach Investigation', severity: 'critical', status: 'in_progress', created_by_name: 'Admin User', created_at: new Date(Date.now() - 86400000).toISOString() }
   ],
-  
+
   notifications: [
     { id: 1, title: 'New Threat Detected', message: 'High severity threat on Server-01', type: 'danger', is_read: false, created_at: new Date().toISOString() },
     { id: 2, title: 'Device Offline', message: 'Workstation-01 has gone offline', type: 'warning', is_read: false, created_at: new Date(Date.now() - 1800000).toISOString() },
     { id: 3, title: 'System Update', message: 'Security definitions updated successfully', type: 'success', is_read: true, created_at: new Date(Date.now() - 3600000).toISOString() }
   ],
-  
+
   users: [
     { id: 1, uuid: 'admin-uuid', name: 'Admin User', email: 'admin@cybershield.io', role: 'admin', status: 'active', created_at: new Date().toISOString() },
     { id: 2, uuid: 'user-2', name: 'John Analyst', email: 'john@cybershield.io', role: 'analyst', status: 'active', created_at: new Date(Date.now() - 86400000).toISOString() },
     { id: 3, uuid: 'user-3', name: 'Jane Viewer', email: 'jane@cybershield.io', role: 'viewer', status: 'active', created_at: new Date(Date.now() - 172800000).toISOString() }
   ],
-  
+
   auditLogs: [
     { id: 1, user_name: 'Admin User', action: 'login', resource: 'auth', ip_address: '192.168.1.1', status: 'success', created_at: new Date().toISOString() },
     { id: 2, user_name: 'Admin User', action: 'device_view', resource: 'devices', ip_address: '192.168.1.1', status: 'success', created_at: new Date(Date.now() - 600000).toISOString() }
@@ -188,7 +188,7 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 // ── Helpers ─────────────────────────────────────────────────────────────
 function badge(val, prefix = '') {
   if (!val) return '<span class="mono" style="color:var(--text-3)">—</span>';
-  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g,' ')}</span>`;
+  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g, ' ')}</span>`;
 }
 function badgeStatus(val) { return badge(val, ''); }
 function badgeSeverity(val) { return badge(val, ''); }
@@ -200,9 +200,9 @@ function dot(status) {
 function timeAgo(dt) {
   if (!dt) return '—';
   const diff = Math.floor((Date.now() - new Date(dt)) / 1000);
-  if (diff < 60)    return `${diff}s ago`;
-  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return new Date(dt).toLocaleDateString();
 }
 
@@ -212,7 +212,7 @@ function formatDate(dt) {
 }
 
 function escHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function riskBar(score) {
@@ -247,16 +247,16 @@ const App = {
   setUser(user) {
     App.user = user;
     localStorage.setItem('csws_user', JSON.stringify(user));
-    
+
     // Sidebar user info
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('sidebarUser').innerHTML = `
       <div class="user-avatar">${initials}</div>
       <div><div class="user-name">${escHtml(user.name)}</div><div class="user-role">${user.role}</div></div>`;
-    
+
     // Show/hide role-gated elements
     document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', user.role !== 'admin'));
-    document.querySelectorAll('.analyst-only').forEach(el => el.classList.toggle('hidden', !['admin','analyst'].includes(user.role)));
+    document.querySelectorAll('.analyst-only').forEach(el => el.classList.toggle('hidden', !['admin', 'analyst'].includes(user.role)));
   },
 
   showLogin() {
@@ -270,7 +270,7 @@ const App = {
     App.navigate('dashboard');
     App.loadNotifications();
     App.notifInterval = setInterval(() => App.loadNotifications(), 30000);
-    
+
     // Initialize notification badge
     setTimeout(() => {
       const badge = document.querySelector('.notification-dot');
@@ -532,8 +532,25 @@ const App = {
       console.error('Devices container not found!');
       return;
     }
+
+    const deviceRows = MockData.devices.map(d => `
+      < tr >
+        <td><strong>${escHtml(d.device_name)}</strong></td>
+        <td>${escHtml(d.device_type)}</td>
+        <td class="mono">${escHtml(d.ip_address)}</td>
+        <td>${dot(d.status)} ${badgeStatus(d.status)}</td>
+        <td>${riskBar(d.risk_score)}</td>
+        <td>${escHtml(d.owner_name)}</td>
+        <td>
+          <div class="actions">
+            <button class="action-btn" onclick="App.viewDevice('${d.uuid}')">View</button>
+            <button class="action-btn red" onclick="App.quarantineDevice('${d.uuid}')">Quarantine</button>
+          </div>
+        </td>
+      </tr > `).join('');
+
     content.innerHTML = `
-        <div class="section-toolbar">
+  < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search devices..." onkeyup="App.filterDevices(this.value)">
           <div class="filter-group">
             <select class="select-sm" onchange="App.filterByStatus(this.value)">
@@ -560,26 +577,11 @@ const App = {
               <th>Actions</th>
             </tr></thead>
             <tbody id="devicesTableBody">
-              ${MockData.devices.map(d => `
-                <tr>
-                  <td><strong>${escHtml(d.device_name)}</strong></td>
-                  <td>${escHtml(d.device_type)}</td>
-                  <td class="mono">${escHtml(d.ip_address)}</td>
-                  <td>${dot(d.status)} ${badgeStatus(d.status)}</td>
-                  <td>${riskBar(d.risk_score)}</td>
-                  <td>${escHtml(d.owner_name)}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="action-btn" onclick="App.viewDevice('${d.uuid}')">View</button>
-                      <button class="action-btn red" onclick="App.quarantineDevice('${d.uuid}')">Quarantine</button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
+              ${deviceRows}
             </tbody>
           </table>
         </div>
-    `;
+`;
     console.log('Devices loaded successfully');
   },
 
@@ -591,7 +593,7 @@ const App = {
       return;
     }
     content.innerHTML = `
-        <div class="section-toolbar">
+  < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search threats...">
           <div class="filter-group">
             <select class="select-sm">
@@ -638,7 +640,7 @@ const App = {
             </tbody>
           </table>
         </div>
-    `;
+`;
     console.log('Threats loaded successfully');
   },
 
@@ -650,7 +652,7 @@ const App = {
       return;
     }
     content.innerHTML = `
-        <div class="section-toolbar">
+  < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search incidents...">
           <div class="filter-group">
             <select class="select-sm">
@@ -694,7 +696,7 @@ const App = {
             </tbody>
           </table>
         </div>
-    `;
+`;
     console.log('Incidents loaded successfully');
   },
 
@@ -706,7 +708,7 @@ const App = {
       return;
     }
     content.innerHTML = `
-        <div class="section-toolbar">
+  < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search audit logs...">
           <div class="filter-group">
             <select class="select-sm">
@@ -743,7 +745,7 @@ const App = {
             </tbody>
           </table>
         </div>
-    `;
+`;
     console.log('Audit logs loaded successfully');
   },
 
@@ -761,7 +763,7 @@ const App = {
     }
     
     content.innerHTML = `
-        <div class="section-toolbar">
+  < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search users...">
           <div class="filter-group">
             <select class="select-sm">
@@ -805,7 +807,7 @@ const App = {
             </tbody>
           </table>
         </div>
-    `;
+`;
     console.log('Users loaded successfully');
   },
 
@@ -816,15 +818,15 @@ const App = {
     const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
     
     panel.innerHTML = MockData.notifications.map(n => `
-      <div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick="App.markNotificationRead(${n.id})">
+  < div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick = "App.markNotificationRead(${n.id})" >
         <div class="notif-dot ${n.type}"></div>
         <div class="notif-text">
           <div class="notif-title">${escHtml(n.title)}</div>
           <div class="notif-msg">${escHtml(n.message)}</div>
           <div class="notif-time">${timeAgo(n.created_at)}</div>
         </div>
-      </div>
-    `).join('');
+      </div >
+  `).join('');
 
     // Update notification badge
     const badge = document.querySelector('.notification-dot');
@@ -889,7 +891,7 @@ const App = {
   // Modal functions
   showAddDeviceModal() {
     Modal.open('Add Device', `
-      <div class="form-group">
+  < div class="form-group" >
         <label>Device Name</label>
         <input type="text" id="deviceName" placeholder="Enter device name">
       </div>
@@ -911,10 +913,10 @@ const App = {
         <label>Owner</label>
         <input type="text" id="deviceOwner" placeholder="Device owner name">
       </div>
-    `, `
-      <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-      <button class="btn-primary" onclick="App.addDevice()">Add Device</button>
-    `);
+`, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+    <button class="btn-primary" onclick="App.addDevice()">Add Device</button>
+`);
   },
 
   addDevice() {
@@ -930,7 +932,7 @@ const App = {
     
     const newDevice = {
       id: MockData.devices.length + 1,
-      uuid: `dev-${Date.now()}`,
+      uuid: `dev - ${ Date.now() } `,
       device_name: name,
       device_type: type,
       ip_address: ip,
@@ -951,7 +953,7 @@ const App = {
 
   showAddThreatModal() {
     Modal.open('Log Threat', `
-      <div class="form-group">
+  < div class="form-group" >
         <label>Threat Title</label>
         <input type="text" id="threatTitle" placeholder="Enter threat title">
       </div>
@@ -986,10 +988,10 @@ const App = {
         <label>Description</label>
         <textarea id="threatDescription" placeholder="Describe the threat details..."></textarea>
       </div>
-    `, `
-      <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-      <button class="btn-primary" onclick="App.addThreat()">Log Threat</button>
-    `);
+`, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+    <button class="btn-primary" onclick="App.addThreat()">Log Threat</button>
+`);
   },
 
   addThreat() {
@@ -1007,7 +1009,7 @@ const App = {
     const device = MockData.devices.find(d => d.uuid === deviceUuid);
     const newThreat = {
       id: MockData.threats.length + 1,
-      uuid: `threat-${Date.now()}`,
+      uuid: `threat - ${ Date.now() } `,
       title: title,
       category: category,
       severity: severity,
@@ -1028,7 +1030,7 @@ const App = {
 
   showAddIncidentModal() {
     Modal.open('Create Incident', `
-      <div class="form-group">
+  < div class="form-group" >
         <label>Incident Title</label>
         <input type="text" id="incidentTitle" placeholder="Enter incident title">
       </div>
@@ -1049,10 +1051,10 @@ const App = {
         <label>Initial Actions Taken</label>
         <textarea id="incidentActions" placeholder="Describe immediate actions taken..."></textarea>
       </div>
-    `, `
-      <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-      <button class="btn-primary" onclick="App.addIncident()">Create Incident</button>
-    `);
+`, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+    <button class="btn-primary" onclick="App.addIncident()">Create Incident</button>
+`);
   },
 
   addIncident() {
@@ -1068,7 +1070,7 @@ const App = {
     
     const newIncident = {
       id: MockData.incidents.length + 1,
-      uuid: `inc-${Date.now()}`,
+      uuid: `inc - ${ Date.now() } `,
       title: title,
       severity: severity,
       status: 'open',
@@ -1089,7 +1091,7 @@ const App = {
 
   showAddUserModal() {
     Modal.open('Add User', `
-      <div class="form-group">
+  < div class="form-group" >
         <label>Full Name</label>
         <input type="text" id="userName" placeholder="Enter full name">
       </div>
@@ -1113,10 +1115,10 @@ const App = {
         <label>Confirm Password</label>
         <input type="password" id="userConfirmPassword" placeholder="Confirm password">
       </div>
-    `, `
-      <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-      <button class="btn-primary" onclick="App.addUser()">Add User</button>
-    `);
+`, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+    <button class="btn-primary" onclick="App.addUser()">Add User</button>
+`);
   },
 
   addUser() {
@@ -1143,7 +1145,7 @@ const App = {
     
     const newUser = {
       id: MockData.users ? MockData.users.length + 1 : 2,
-      uuid: `user-${Date.now()}`,
+      uuid: `user - ${ Date.now() } `,
       name: name,
       email: email,
       role: role,
@@ -1167,7 +1169,7 @@ const App = {
     const device = MockData.devices.find(d => d.uuid === uuid);
     if (device) {
       Modal.open('Device Details', `
-        <div class="detail-grid">
+  < div class="detail-grid" >
           <div class="detail-field">
             <label>Device Name</label>
             <div class="val">${escHtml(device.device_name)}</div>
@@ -1196,10 +1198,10 @@ const App = {
             <label>Open Threats</label>
             <div class="val">${device.open_threats}</div>
           </div>
-        </div>
-      `, `
-        <button class="btn-secondary" onclick="Modal.close()">Close</button>
-      `);
+        </div >
+  `, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Close</button >
+    `);
     }
   },
 
@@ -1208,7 +1210,7 @@ const App = {
     if (device) {
       device.status = device.status === 'quarantined' ? 'online' : 'quarantined';
       App.loadDevices();
-      Toast.show(`Device ${device.device_name} ${device.status === 'quarantined' ? 'quarantined' : 'released from quarantine'}`, 'warning');
+      Toast.show(`Device ${ device.device_name } ${ device.status === 'quarantined' ? 'quarantined' : 'released from quarantine' } `, 'warning');
     }
   },
 
@@ -1216,7 +1218,7 @@ const App = {
     const threat = MockData.threats.find(t => t.uuid === uuid);
     if (threat) {
       Modal.open('Threat Details', `
-        <div class="detail-grid">
+  < div class="detail-grid" >
           <div class="detail-field">
             <label>Title</label>
             <div class="val">${escHtml(threat.title)}</div>
@@ -1241,17 +1243,19 @@ const App = {
             <label>Detected</label>
             <div class="val">${formatDate(threat.detected_at)}</div>
           </div>
-          ${threat.description ? `
+          ${
+  threat.description ? `
             <div class="detail-field full">
               <label>Description</label>
               <div class="val">${escHtml(threat.description)}</div>
             </div>
-          ` : ''}
-        </div>
-      `, `
-        <button class="btn-secondary" onclick="Modal.close()">Close</button>
-        <button class="btn-primary" onclick="App.assignThreat('${uuid}')">Assign to Me</button>
-      `);
+          ` : ''
+}
+        </div >
+  `, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Close</button >
+    <button class="btn-primary" onclick="App.assignThreat('${uuid}')">Assign to Me</button>
+`);
     }
   },
 
@@ -1268,7 +1272,7 @@ const App = {
     const incident = MockData.incidents.find(i => i.uuid === uuid);
     if (incident) {
       Modal.open('Incident Details', `
-        <div class="detail-grid">
+  < div class="detail-grid" >
           <div class="detail-field">
             <label>Title</label>
             <div class="val">${escHtml(incident.title)}</div>
@@ -1289,23 +1293,27 @@ const App = {
             <label>Created</label>
             <div class="val">${formatDate(incident.created_at)}</div>
           </div>
-          ${incident.description ? `
+          ${
+  incident.description ? `
             <div class="detail-field full">
               <label>Description</label>
               <div class="val">${escHtml(incident.description)}</div>
             </div>
-          ` : ''}
-          ${incident.initial_actions ? `
+          ` : ''
+}
+          ${
+  incident.initial_actions ? `
             <div class="detail-field full">
               <label>Initial Actions</label>
               <div class="val">${escHtml(incident.initial_actions)}</div>
             </div>
-          ` : ''}
-        </div>
-      `, `
-        <button class="btn-secondary" onclick="Modal.close()">Close</button>
-        <button class="btn-primary" onclick="App.editIncident('${uuid}')">Edit Incident</button>
-      `);
+          ` : ''
+}
+        </div >
+  `, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Close</button >
+    <button class="btn-primary" onclick="App.editIncident('${uuid}')">Edit Incident</button>
+`);
     }
   },
 
@@ -1313,7 +1321,7 @@ const App = {
     const incident = MockData.incidents.find(i => i.uuid === uuid);
     if (incident) {
       Modal.open('Edit Incident', `
-        <div class="form-group">
+  < div class="form-group" >
           <label>Title</label>
           <input type="text" id="editIncidentTitle" value="${escHtml(incident.title)}">
         </div>
@@ -1338,10 +1346,10 @@ const App = {
           <label>Description</label>
           <textarea id="editIncidentDescription">${escHtml(incident.description || '')}</textarea>
         </div>
-      `, `
-        <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-        <button class="btn-primary" onclick="App.updateIncident('${uuid}')">Update Incident</button>
-      `);
+`, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+    <button class="btn-primary" onclick="App.updateIncident('${uuid}')">Update Incident</button>
+`);
     }
   },
 
@@ -1363,7 +1371,7 @@ const App = {
     const user = MockData.users.find(u => u.uuid === uuid);
     if (user) {
       Modal.open('Edit User', `
-        <div class="form-group">
+  < div class="form-group" >
           <label>Full Name</label>
           <input type="text" id="editUserName" value="${escHtml(user.name)}">
         </div>
@@ -1379,10 +1387,10 @@ const App = {
             <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select>
         </div>
-      `, `
-        <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-        <button class="btn-primary" onclick="App.updateUser('${uuid}')">Update User</button>
-      `);
+`, `
+  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+    <button class="btn-primary" onclick="App.updateUser('${uuid}')">Update User</button>
+`);
     }
   },
 
