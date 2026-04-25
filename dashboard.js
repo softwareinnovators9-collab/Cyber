@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 'use strict';
 
-// ── Mock Data ───────────────────────────────────────────────────────────────
+// ── Mock Data (Fallback only - use DataStore for actual data) ────────────────
 const MockData = {
   user: {
     id: 1,
@@ -115,41 +115,7 @@ const MockData = {
     name: 'Admin User',
     email: 'admin@cybershield.io',
     role: 'admin'
-  },
-
-  devices: [
-    { id: 1, uuid: 'dev-1', device_name: 'Server-01', device_type: 'server', ip_address: '192.168.1.100', status: 'online', risk_score: 25, owner_name: 'Admin User', open_threats: 2 },
-    { id: 2, uuid: 'dev-2', device_name: 'Workstation-01', device_type: 'workstation', ip_address: '192.168.1.101', status: 'offline', risk_score: 45, owner_name: 'Admin User', open_threats: 0 },
-    { id: 3, uuid: 'dev-3', device_name: 'Mobile-01', device_type: 'mobile', ip_address: '192.168.1.102', status: 'online', risk_score: 15, owner_name: 'Admin User', open_threats: 1 }
-  ],
-
-  threats: [
-    { id: 1, uuid: 'threat-1', title: 'Suspicious Login Attempt', severity: 'high', category: 'intrusion', status: 'open', device_name: 'Server-01', detected_at: new Date().toISOString() },
-    { id: 2, uuid: 'threat-2', title: 'Malware Detected', severity: 'critical', category: 'malware', status: 'open', device_name: 'Workstation-01', detected_at: new Date(Date.now() - 3600000).toISOString() },
-    { id: 3, uuid: 'threat-3', title: 'Phishing Email', severity: 'medium', category: 'phishing', status: 'investigating', device_name: 'Mobile-01', detected_at: new Date(Date.now() - 7200000).toISOString() }
-  ],
-
-  incidents: [
-    { id: 1, uuid: 'inc-1', title: 'Security Incident #1', severity: 'high', status: 'open', created_by_name: 'Admin User', created_at: new Date().toISOString() },
-    { id: 2, uuid: 'inc-2', title: 'Data Breach Investigation', severity: 'critical', status: 'in_progress', created_by_name: 'Admin User', created_at: new Date(Date.now() - 86400000).toISOString() }
-  ],
-
-  notifications: [
-    { id: 1, title: 'New Threat Detected', message: 'High severity threat on Server-01', type: 'danger', is_read: false, created_at: new Date().toISOString() },
-    { id: 2, title: 'Device Offline', message: 'Workstation-01 has gone offline', type: 'warning', is_read: false, created_at: new Date(Date.now() - 1800000).toISOString() },
-    { id: 3, title: 'System Update', message: 'Security definitions updated successfully', type: 'success', is_read: true, created_at: new Date(Date.now() - 3600000).toISOString() }
-  ],
-
-  users: [
-    { id: 1, uuid: 'admin-uuid', name: 'Admin User', email: 'admin@cybershield.io', role: 'admin', status: 'active', created_at: new Date().toISOString() },
-    { id: 2, uuid: 'user-2', name: 'John Analyst', email: 'john@cybershield.io', role: 'analyst', status: 'active', created_at: new Date(Date.now() - 86400000).toISOString() },
-    { id: 3, uuid: 'user-3', name: 'Jane Viewer', email: 'jane@cybershield.io', role: 'viewer', status: 'active', created_at: new Date(Date.now() - 172800000).toISOString() }
-  ],
-
-  auditLogs: [
-    { id: 1, user_name: 'Admin User', action: 'login', resource: 'auth', ip_address: '192.168.1.1', status: 'success', created_at: new Date().toISOString() },
-    { id: 2, user_name: 'Admin User', action: 'device_view', resource: 'devices', ip_address: '192.168.1.1', status: 'success', created_at: new Date(Date.now() - 600000).toISOString() }
-  ]
+  }
 };
 
 // ── Toast ───────────────────────────────────────────────────────────────
@@ -234,10 +200,10 @@ const App = {
   notifInterval: null,
 
   init() {
-    // Check stored session
-    const storedUser = localStorage.getItem('csws_user');
+    // Check stored session from DataStore
+    const storedUser = DataStore.getCurrentUser();
     if (storedUser) {
-      App.setUser(JSON.parse(storedUser));
+      App.setUser(storedUser);
       App.showApp();
       return;
     }
@@ -246,7 +212,7 @@ const App = {
 
   setUser(user) {
     App.user = user;
-    localStorage.setItem('csws_user', JSON.stringify(user));
+    DataStore.setCurrentUser(user);
 
     // Sidebar user info
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -323,31 +289,37 @@ const App = {
       console.error('Dashboard container not found!');
       return;
     }
+
+    // Get data from DataStore
+    const stats = DataStore.getStats();
+    const threats = DataStore.getThreats();
+    const incidents = DataStore.getIncidents();
+
     content.innerHTML = `
         <div class="stat-grid">
           <div class="stat-card info">
             <div class="stat-icon"><i class="fas fa-server"></i></div>
-            <div class="stat-value">${MockData.devices.length}</div>
+            <div class="stat-value">${stats.totalDevices}</div>
             <div class="stat-label">Total Devices</div>
-            <div class="stat-sub">${MockData.devices.filter(d => d.status === 'online').length} online</div>
+            <div class="stat-sub">${stats.onlineDevices} online</div>
           </div>
           <div class="stat-card danger">
             <div class="stat-icon"><i class="fas fa-bug"></i></div>
-            <div class="stat-value">${MockData.threats.length}</div>
+            <div class="stat-value">${stats.openThreats}</div>
             <div class="stat-label">Active Threats</div>
-            <div class="stat-sub">${MockData.threats.filter(t => t.severity === 'critical').length} critical</div>
+            <div class="stat-sub">${stats.criticalThreats} critical</div>
           </div>
           <div class="stat-card warning">
             <div class="stat-icon"><i class="fas fa-fire-flame-curved"></i></div>
-            <div class="stat-value">${MockData.incidents.length}</div>
+            <div class="stat-value">${stats.openIncidents + stats.inProgressIncidents}</div>
             <div class="stat-label">Open Incidents</div>
-            <div class="stat-sub">${MockData.incidents.filter(i => i.status === 'open').length} pending</div>
+            <div class="stat-sub">${stats.inProgressIncidents} in progress</div>
           </div>
           <div class="stat-card info">
             <div class="stat-icon"><i class="fas fa-shield-halved"></i></div>
-            <div class="stat-value">98%</div>
+            <div class="stat-value">${stats.securityScore}%</div>
             <div class="stat-label">Security Score</div>
-            <div class="stat-sub">Excellent</div>
+            <div class="stat-sub">${stats.securityScore >= 80 ? 'Excellent' : stats.securityScore >= 60 ? 'Good' : 'Needs Attention'}</div>
           </div>
         </div>
 
@@ -381,7 +353,7 @@ const App = {
                   <th>Time</th>
                 </tr></thead>
                 <tbody>
-                  ${MockData.threats.slice(0, 5).map(t => `
+                  ${threats.slice(0, 5).map(t => `
                     <tr>
                       <td>${escHtml(t.title)}</td>
                       <td>${badgeSeverity(t.severity)}</td>
@@ -407,7 +379,7 @@ const App = {
                   <th>Time</th>
                 </tr></thead>
                 <tbody>
-                  ${MockData.incidents.slice(0, 5).map(i => `
+                  ${incidents.slice(0, 5).map(i => `
                     <tr>
                       <td>${escHtml(i.title)}</td>
                       <td>${badgeSeverity(i.severity)}</td>
@@ -421,9 +393,9 @@ const App = {
           </div>
         </div>
 
-        // JSON-Powered Page Usage Analytics (GQM Metrics)
-        const stats = PageTracker.getAllStats();
-
+        <!-- JSON-Powered Page Usage Analytics (GQM Metrics) -->
+        ${(() => {
+        const pageStats = PageTracker.getAllStats();
         let analyticsHTML = '<div class="card" style="margin-top:24px;">';
         analyticsHTML += '<div class="card-header">';
         analyticsHTML += '<h3>📊 Page Usage Analytics – JSON Tracked</h3>';
@@ -442,8 +414,8 @@ const App = {
         analyticsHTML += '<th>Last Visit</th>';
         analyticsHTML += '</tr></thead>';
         analyticsHTML += '<tbody>';
-        
-        Object.entries(stats).forEach(([page, data]) => {
+
+        Object.entries(pageStats).forEach(([page, data]) => {
           analyticsHTML += '<tr>';
           analyticsHTML += '<td><strong>' + page + '</strong></td>';
           analyticsHTML += '<td>' + data.visits + '</td>';
@@ -452,89 +424,90 @@ const App = {
           analyticsHTML += '<td class="mono">' + new Date(data.lastVisit).toLocaleString() + '</td>';
           analyticsHTML += '</tr>';
         });
-        
+
         analyticsHTML += '</tbody>';
         analyticsHTML += '</table>';
         analyticsHTML += '</div>';
         analyticsHTML += '</div>';
-        
+
         content.innerHTML += analyticsHTML;
 
-    // Initialize charts
-    setTimeout(() => {
-      App.initThreatChart();
-      App.initSeverityChart();
-    }, 100);
-    console.log('Dashboard loaded successfully');
-  },
-
-  initThreatChart() {
-    const ctx = document.getElementById('threatChart');
-    if (!ctx) return;
-    
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: Array.from({length: 14}, (_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() - (13 - i));
-          return date.toLocaleDateString();
-        }),
-        datasets: [{
-          label: 'Threats Detected',
-          data: Array.from({length: 14}, () => Math.floor(Math.random() * 10) + 2),
-          borderColor: '#00d4ff',
-          backgroundColor: '#00d4ff18',
-          tension: 0.4
-        }]
+        // Initialize charts
+        setTimeout(() => {
+          App.initThreatChart();
+          App.initSeverityChart();
+        }, 100);
+        console.log('Dashboard loaded successfully');
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
+
+        initThreatChart() {
+      const ctx = document.getElementById('threatChart');
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({ length: 14 }, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - (13 - i));
+            return date.toLocaleDateString();
+          }),
+          datasets: [{
+            label: 'Threats Detected',
+            data: Array.from({ length: 14 }, () => Math.floor(Math.random() * 10) + 2),
+            borderColor: '#00d4ff',
+            backgroundColor: '#00d4ff18',
+            tension: 0.4
+          }]
         },
-        scales: {
-          y: { beginAtZero: true, grid: { color: '#1f2d3d' }, ticks: { color: '#94a3b8' } },
-          x: { grid: { color: '#1f2d3d' }, ticks: { color: '#94a3b8' } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#1f2d3d' }, ticks: { color: '#94a3b8' } },
+            x: { grid: { color: '#1f2d3d' }, ticks: { color: '#94a3b8' } }
+          }
         }
-      }
-    });
-  },
+      });
+    },
 
-  initSeverityChart() {
-    const ctx = document.getElementById('severityChart');
-    if (!ctx) return;
-    
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Critical', 'High', 'Medium', 'Low'],
-        datasets: [{
-          data: [1, 2, 3, 4],
-          backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#10b981']
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#e2e8f0' } }
+    initSeverityChart() {
+      const ctx = document.getElementById('severityChart');
+      if (!ctx) return;
+
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Critical', 'High', 'Medium', 'Low'],
+          datasets: [{
+            data: [1, 2, 3, 4],
+            backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#10b981']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#e2e8f0' } }
+          }
         }
+      });
+    },
+
+    loadDevices() {
+      console.log('Loading devices...');
+      const content = document.getElementById('page-devices');
+      if (!content) {
+        console.error('Devices container not found!');
+        return;
       }
-    });
-  },
 
-  loadDevices() {
-    console.log('Loading devices...');
-    const content = document.getElementById('page-devices');
-    if (!content) {
-      console.error('Devices container not found!');
-      return;
-    }
-
-    const deviceRows = MockData.devices.map(d => `
-      < tr >
+      const devices = DataStore.getDevices();
+      const deviceRows = devices.map(d => `
+      <tr>
         <td><strong>${escHtml(d.device_name)}</strong></td>
         <td>${escHtml(d.device_type)}</td>
         <td class="mono">${escHtml(d.ip_address)}</td>
@@ -547,167 +520,172 @@ const App = {
             <button class="action-btn red" onclick="App.quarantineDevice('${d.uuid}')">Quarantine</button>
           </div>
         </td>
-      </tr > `).join('');
+      </tr>
+    `).join('');
 
-    content.innerHTML = `
-  < div class="section-toolbar" >
-          <input type="text" class="search-input" placeholder="Search devices..." onkeyup="App.filterDevices(this.value)">
-          <div class="filter-group">
-            <select class="select-sm" onchange="App.filterByStatus(this.value)">
-              <option value="">All Status</option>
-              <option value="online">Online</option>
-              <option value="offline">Offline</option>
-              <option value="quarantined">Quarantined</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddDeviceModal()">
-            <i class="fas fa-plus"></i> Add Device
-          </button>
+      content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search devices..." onkeyup="App.filterDevices(this.value)">
+        <div class="filter-group">
+          <select class="select-sm" onchange="App.filterByStatus(this.value)">
+            <option value="">All Status</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+            <option value="quarantined">Quarantined</option>
+          </select>
         </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddDeviceModal()">
+          <i class="fas fa-plus"></i> Add Device
+        </button>
+      </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Device</th>
-              <th>Type</th>
-              <th>IP Address</th>
-              <th>Status</th>
-              <th>Risk Score</th>
-              <th>Owner</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody id="devicesTableBody">
-              ${deviceRows}
-            </tbody>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Device</th>
+            <th>Type</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Risk Score</th>
+            <th>Owner</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="devicesTableBody">
+            ${deviceRows}
+          </tbody>
+        </table>
+      </div>
+    `;
+      console.log('Devices loaded successfully');
+    },
+
+    loadThreats() {
+      console.log('Loading threats...');
+      const content = document.getElementById('page-threats');
+      if (!content) {
+        console.error('Threats container not found!');
+        return;
+      }
+
+      const threats = DataStore.getThreats();
+      content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search threats...">
+        <div class="filter-group">
+          <select class="select-sm">
+            <option value="">All Severities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddThreatModal()">
+          <i class="fas fa-plus"></i> Log Threat
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Threat</th>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Device</th>
+            <th>Detected</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${threats.map(t => `
+              <tr>
+                <td><strong>${escHtml(t.title)}</strong></td>
+                <td>${escHtml(t.category)}</td>
+                <td>${badgeSeverity(t.severity)}</td>
+                <td>${badgeStatus(t.status)}</td>
+                <td>${escHtml(t.device_name)}</td>
+                <td>${timeAgo(t.detected_at)}</td>
+                <td>
+                  <div class="actions">
+                    <button class="action-btn" onclick="App.viewThreat('${t.uuid}')">View</button>
+                    <button class="action-btn" onclick="App.assignThreat('${t.uuid}')">Assign</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+      console.log('Threats loaded successfully');
+    },
+
+    loadIncidents() {
+      console.log('Loading incidents...');
+      const content = document.getElementById('page-incidents');
+      if (!content) {
+        console.error('Incidents container not found!');
+        return;
+      }
+
+      const incidents = DataStore.getIncidents();
+      content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search incidents...">
+        <div class="filter-group">
+          <select class="select-sm">
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddIncidentModal()">
+          <i class="fas fa-plus"></i> Create Incident
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Incident</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Created By</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${incidents.map(i => `
+              <tr>
+                <td><strong>${escHtml(i.title)}</strong></td>
+                <td>${badgeSeverity(i.severity)}</td>
+                <td>${badgeStatus(i.status)}</td>
+                <td>${escHtml(i.created_by_name)}</td>
+                <td>${timeAgo(i.created_at)}</td>
+                <td>
+                  <div class="actions">
+                    <button class="action-btn" onclick="App.viewIncident('${i.uuid}')">View</button>
+                    <button class="action-btn" onclick="App.editIncident('${i.uuid}')">Edit</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
           </table>
         </div>
 `;
-    console.log('Devices loaded successfully');
-  },
+      console.log('Incidents loaded successfully');
+    },
 
-  loadThreats() {
-    console.log('Loading threats...');
-    const content = document.getElementById('page-threats');
-    if (!content) {
-      console.error('Threats container not found!');
-      return;
-    }
-    content.innerHTML = `
-  < div class="section-toolbar" >
-          <input type="text" class="search-input" placeholder="Search threats...">
-          <div class="filter-group">
-            <select class="select-sm">
-              <option value="">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddThreatModal()">
-            <i class="fas fa-plus"></i> Log Threat
-          </button>
-        </div>
-
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Threat</th>
-              <th>Category</th>
-              <th>Severity</th>
-              <th>Status</th>
-              <th>Device</th>
-              <th>Detected</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody>
-              ${MockData.threats.map(t => `
-                <tr>
-                  <td><strong>${escHtml(t.title)}</strong></td>
-                  <td>${escHtml(t.category)}</td>
-                  <td>${badgeSeverity(t.severity)}</td>
-                  <td>${badgeStatus(t.status)}</td>
-                  <td>${escHtml(t.device_name)}</td>
-                  <td>${timeAgo(t.detected_at)}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="action-btn" onclick="App.viewThreat('${t.uuid}')">View</button>
-                      <button class="action-btn" onclick="App.assignThreat('${t.uuid}')">Assign</button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-`;
-    console.log('Threats loaded successfully');
-  },
-
-  loadIncidents() {
-    console.log('Loading incidents...');
-    const content = document.getElementById('page-incidents');
-    if (!content) {
-      console.error('Incidents container not found!');
-      return;
-    }
-    content.innerHTML = `
-  < div class="section-toolbar" >
-          <input type="text" class="search-input" placeholder="Search incidents...">
-          <div class="filter-group">
-            <select class="select-sm">
-              <option value="">All Status</option>
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddIncidentModal()">
-            <i class="fas fa-plus"></i> Create Incident
-          </button>
-        </div>
-
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Incident</th>
-              <th>Severity</th>
-              <th>Status</th>
-              <th>Created By</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody>
-              ${MockData.incidents.map(i => `
-                <tr>
-                  <td><strong>${escHtml(i.title)}</strong></td>
-                  <td>${badgeSeverity(i.severity)}</td>
-                  <td>${badgeStatus(i.status)}</td>
-                  <td>${escHtml(i.created_by_name)}</td>
-                  <td>${timeAgo(i.created_at)}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="action-btn" onclick="App.viewIncident('${i.uuid}')">View</button>
-                      <button class="action-btn" onclick="App.editIncident('${i.uuid}')">Edit</button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-`;
-    console.log('Incidents loaded successfully');
-  },
-
-  loadAuditLogs() {
-    console.log('Loading audit logs...');
-    const content = document.getElementById('page-audit');
-    if (!content) {
-      console.error('Audit logs container not found!');
-      return;
-    }
-    content.innerHTML = `
+    loadAuditLogs() {
+      console.log('Loading audit logs...');
+      const content = document.getElementById('page-audit');
+      if (!content) {
+        console.error('Audit logs container not found!');
+        return;
+      }
+      content.innerHTML = `
   < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search audit logs...">
           <div class="filter-group">
@@ -746,23 +724,23 @@ const App = {
           </table>
         </div>
 `;
-    console.log('Audit logs loaded successfully');
-  },
+      console.log('Audit logs loaded successfully');
+    },
 
-  loadUsers() {
-    console.log('Loading users...');
-    const content = document.getElementById('page-users');
-    if (!content) {
-      console.error('Users container not found!');
-      return;
-    }
-    
-    // Initialize users array if it doesn't exist
-    if (!MockData.users) {
-      MockData.users = [MockData.user];
-    }
-    
-    content.innerHTML = `
+    loadUsers() {
+      console.log('Loading users...');
+      const content = document.getElementById('page-users');
+      if (!content) {
+        console.error('Users container not found!');
+        return;
+      }
+
+      // Initialize users array if it doesn't exist
+      if (!MockData.users) {
+        MockData.users = [MockData.user];
+      }
+
+      content.innerHTML = `
   < div class="section-toolbar" >
           <input type="text" class="search-input" placeholder="Search users...">
           <div class="filter-group">
@@ -808,89 +786,88 @@ const App = {
           </table>
         </div>
 `;
-    console.log('Users loaded successfully');
-  },
+      console.log('Users loaded successfully');
+    },
 
-  loadNotifications() {
-    const panel = document.getElementById('notificationsList');
-    if (!panel) return;
-    
-    const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
-    
-    panel.innerHTML = MockData.notifications.map(n => `
-  < div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick = "App.markNotificationRead(${n.id})" >
+    loadNotifications() {
+      const panel = document.getElementById('notificationsList');
+      if (!panel) return;
+
+      const notifications = DataStore.getNotifications();
+      const unreadCount = notifications.filter(n => !n.is_read).length;
+
+      panel.innerHTML = notifications.map(n => `
+      <div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick="App.markNotificationRead(${n.id})">
         <div class="notif-dot ${n.type}"></div>
         <div class="notif-text">
           <div class="notif-title">${escHtml(n.title)}</div>
           <div class="notif-msg">${escHtml(n.message)}</div>
           <div class="notif-time">${timeAgo(n.created_at)}</div>
         </div>
-      </div >
-  `).join('');
+      </div>
+    `).join('');
 
-    // Update notification badge
-    const badge = document.querySelector('.notification-dot');
-    if (badge) {
-      badge.style.display = unreadCount > 0 ? 'block' : 'none';
-    }
-  },
+      // Update notification badge
+      const badge = document.querySelector('.notification-dot');
+      if (badge) {
+        badge.style.display = unreadCount > 0 ? 'block' : 'none';
+      }
+    },
 
-  toggleNotifications() {
-    console.log('Toggling notifications panel...');
-    const panel = document.getElementById('notificationsPanel');
-    if (!panel) {
-      console.error('Notifications panel not found!');
-      return;
-    }
-    panel.classList.toggle('open');
-    console.log('Notifications panel toggled, open:', panel.classList.contains('open'));
-  },
+    toggleNotifications() {
+      console.log('Toggling notifications panel...');
+      const panel = document.getElementById('notificationsPanel');
+      if (!panel) {
+        console.error('Notifications panel not found!');
+        return;
+      }
+      panel.classList.toggle('open');
+      console.log('Notifications panel toggled, open:', panel.classList.contains('open'));
+    },
 
-  markNotificationRead(id) {
-    const notif = MockData.notifications.find(n => n.id === id);
-    if (notif) {
-      notif.is_read = true;
+    markNotificationRead(id) {
+      DataStore.markNotificationRead(id);
       App.loadNotifications();
-    }
-  },
+    },
 
-  toggleTheme() {
-    console.log('Toggling theme...');
-    // Simple theme toggle (can be expanded)
-    document.body.classList.toggle('light-theme');
-    const icon = document.getElementById('themeIcon');
-    if (icon) {
-      icon.className = document.body.classList.contains('light-theme') ? 'fas fa-sun' : 'fas fa-moon';
-      console.log('Theme toggled, light-theme:', document.body.classList.contains('light-theme'));
-    } else {
-      console.error('Theme icon not found!');
-    }
-  },
+    toggleTheme() {
+      console.log('Toggling theme...');
+      // Simple theme toggle (can be expanded)
+      document.body.classList.toggle('light-theme');
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = document.body.classList.contains('light-theme') ? 'fas fa-sun' : 'fas fa-moon';
+        console.log('Theme toggled, light-theme:', document.body.classList.contains('light-theme'));
+      } else {
+        console.error('Theme icon not found!');
+      }
+    },
 
-  login(email, password) {
-    // Simple mock authentication
-    if (email === 'admin@cybershield.io' && password === 'Admin@CyberShield1') {
-      App.setUser(MockData.user);
-      App.showApp();
-      Toast.show('Login successful', 'success');
-      return true;
-    } else {
-      Toast.show('Invalid credentials', 'error');
-      return false;
-    }
-  },
+    login(email, password) {
+      // Use DataStore for authentication
+      const user = DataStore.authenticate(email, password);
+      if (user) {
+        App.setUser(user);
+        App.showApp();
+        Toast.show('Login successful', 'success');
+        return true;
+      } else {
+        Toast.show('Invalid credentials', 'error');
+        return false;
+      }
+    },
 
-  logout() {
-    localStorage.removeItem('csws_user');
-    App.user = null;
-    clearInterval(App.notifInterval);
-    App.showLogin();
-    Toast.show('Logged out successfully', 'info');
-  },
+    logout() {
+      DataStore.clearCurrentUser();
+      App.user = null;
+      clearInterval(App.notifInterval);
+      App.showLogin();
+      Toast.show('Logged out successfully', 'info');
+    },
 
-  // Modal functions
-  showAddDeviceModal() {
-    Modal.open('Add Device', `
+    // Modal functions
+    showAddDeviceModal() {
+      Modal.open('Add Device', `
   < div class="form-group" >
         <label>Device Name</label>
         <input type="text" id="deviceName" placeholder="Enter device name">
@@ -917,42 +894,42 @@ const App = {
   < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
     <button class="btn-primary" onclick="App.addDevice()">Add Device</button>
 `);
-  },
+    },
 
-  addDevice() {
-    const name = document.getElementById('deviceName').value;
-    const type = document.getElementById('deviceType').value;
-    const ip = document.getElementById('deviceIP').value;
-    const owner = document.getElementById('deviceOwner').value || App.user.name;
-    
-    if (!name || !ip) {
-      Toast.show('Please fill in device name and IP address', 'error');
-      return;
-    }
-    
-    const newDevice = {
-      id: MockData.devices.length + 1,
-      uuid: `dev - ${ Date.now() } `,
-      device_name: name,
-      device_type: type,
-      ip_address: ip,
-      status: 'online',
-      risk_score: Math.floor(Math.random() * 50),
-      owner_name: owner,
-      open_threats: 0
-    };
-    
-    MockData.devices.push(newDevice);
-    Modal.close();
-    App.loadDevices(); // Refresh the devices list
-    Toast.show('Device added successfully', 'success');
-    
-    // Update badge
-    document.getElementById('badge-devices').textContent = MockData.devices.length;
-  },
+    addDevice() {
+      const name = document.getElementById('deviceName').value;
+      const type = document.getElementById('deviceType').value;
+      const ip = document.getElementById('deviceIP').value;
+      const owner = document.getElementById('deviceOwner').value || App.user.name;
 
-  showAddThreatModal() {
-    Modal.open('Log Threat', `
+      if (!name || !ip) {
+        Toast.show('Please fill in device name and IP address', 'error');
+        return;
+      }
+
+      const newDevice = {
+        id: DataStore.getDevices().length + 1,
+        uuid: `dev-${Date.now()}`,
+        device_name: name,
+        device_type: type,
+        ip_address: ip,
+        status: 'online',
+        risk_score: Math.floor(Math.random() * 50),
+        owner_name: owner,
+        open_threats: 0
+      };
+
+      DataStore.addDevice(newDevice);
+      Modal.close();
+      App.loadDevices(); // Refresh the devices list
+      Toast.show('Device added successfully', 'success');
+
+      // Update badge
+      document.getElementById('badge-devices').textContent = DataStore.getDevices().length;
+    },
+
+    showAddThreatModal() {
+      Modal.open('Log Threat', `
   < div class="form-group" >
         <label>Threat Title</label>
         <input type="text" id="threatTitle" placeholder="Enter threat title">
@@ -981,7 +958,7 @@ const App = {
       <div class="form-group">
         <label>Device</label>
         <select id="threatDevice">
-          ${MockData.devices.map(d => `<option value="${d.uuid}">${d.device_name}</option>`).join('')}
+          ${DataStore.getDevices().map(d => `<option value="${d.uuid}">${d.device_name}</option>`).join('')}
         </select>
       </div>
       <div class="form-group">
@@ -989,47 +966,47 @@ const App = {
         <textarea id="threatDescription" placeholder="Describe the threat details..."></textarea>
       </div>
 `, `
-  < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
+  <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
     <button class="btn-primary" onclick="App.addThreat()">Log Threat</button>
 `);
-  },
+    },
 
-  addThreat() {
-    const title = document.getElementById('threatTitle').value;
-    const category = document.getElementById('threatCategory').value;
-    const severity = document.getElementById('threatSeverity').value;
-    const deviceUuid = document.getElementById('threatDevice').value;
-    const description = document.getElementById('threatDescription').value;
-    
-    if (!title || !category || !severity || !deviceUuid) {
-      Toast.show('Please fill in all required fields', 'error');
-      return;
-    }
-    
-    const device = MockData.devices.find(d => d.uuid === deviceUuid);
-    const newThreat = {
-      id: MockData.threats.length + 1,
-      uuid: `threat - ${ Date.now() } `,
-      title: title,
-      category: category,
-      severity: severity,
-      status: 'open',
-      device_name: device ? device.device_name : 'Unknown Device',
-      detected_at: new Date().toISOString(),
-      description: description
-    };
-    
-    MockData.threats.push(newThreat);
-    Modal.close();
-    App.loadThreats(); // Refresh the threats list
-    Toast.show('Threat logged successfully', 'success');
-    
-    // Update badge
-    document.getElementById('badge-threats').textContent = MockData.threats.length;
-  },
+    addThreat() {
+      const title = document.getElementById('threatTitle').value;
+      const category = document.getElementById('threatCategory').value;
+      const severity = document.getElementById('threatSeverity').value;
+      const deviceUuid = document.getElementById('threatDevice').value;
+      const description = document.getElementById('threatDescription').value;
 
-  showAddIncidentModal() {
-    Modal.open('Create Incident', `
+      if (!title || !category || !severity || !deviceUuid) {
+        Toast.show('Please fill in all required fields', 'error');
+        return;
+      }
+
+      const device = DataStore.getDevices().find(d => d.uuid === deviceUuid);
+      const newThreat = {
+        id: DataStore.getThreats().length + 1,
+        uuid: `threat-${Date.now()}`,
+        title: title,
+        category: category,
+        severity: severity,
+        status: 'open',
+        device_name: device ? device.device_name : 'Unknown Device',
+        detected_at: new Date().toISOString(),
+        description: description
+      };
+
+      DataStore.addThreat(newThreat);
+      Modal.close();
+      App.loadThreats(); // Refresh the threats list
+      Toast.show('Threat logged successfully', 'success');
+
+      // Update badge
+      document.getElementById('badge-threats').textContent = DataStore.getThreats().length;
+    },
+
+    showAddIncidentModal() {
+      Modal.open('Create Incident', `
   < div class="form-group" >
         <label>Incident Title</label>
         <input type="text" id="incidentTitle" placeholder="Enter incident title">
@@ -1055,42 +1032,42 @@ const App = {
   < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
     <button class="btn-primary" onclick="App.addIncident()">Create Incident</button>
 `);
-  },
+    },
 
-  addIncident() {
-    const title = document.getElementById('incidentTitle').value;
-    const severity = document.getElementById('incidentSeverity').value;
-    const description = document.getElementById('incidentDescription').value;
-    const actions = document.getElementById('incidentActions').value;
-    
-    if (!title || !severity) {
-      Toast.show('Please fill in title and severity', 'error');
-      return;
-    }
-    
-    const newIncident = {
-      id: MockData.incidents.length + 1,
-      uuid: `inc - ${ Date.now() } `,
-      title: title,
-      severity: severity,
-      status: 'open',
-      created_by_name: App.user.name,
-      created_at: new Date().toISOString(),
-      description: description,
-      initial_actions: actions
-    };
-    
-    MockData.incidents.push(newIncident);
-    Modal.close();
-    App.loadIncidents(); // Refresh the incidents list
-    Toast.show('Incident created successfully', 'success');
-    
-    // Update badge
-    document.getElementById('badge-incidents').textContent = MockData.incidents.length;
-  },
+    addIncident() {
+      const title = document.getElementById('incidentTitle').value;
+      const severity = document.getElementById('incidentSeverity').value;
+      const description = document.getElementById('incidentDescription').value;
+      const actions = document.getElementById('incidentActions').value;
 
-  showAddUserModal() {
-    Modal.open('Add User', `
+      if (!title || !severity) {
+        Toast.show('Please fill in title and severity', 'error');
+        return;
+      }
+
+      const newIncident = {
+        id: MockData.incidents.length + 1,
+        uuid: `inc - ${Date.now()} `,
+        title: title,
+        severity: severity,
+        status: 'open',
+        created_by_name: App.user.name,
+        created_at: new Date().toISOString(),
+        description: description,
+        initial_actions: actions
+      };
+
+      MockData.incidents.push(newIncident);
+      Modal.close();
+      App.loadIncidents(); // Refresh the incidents list
+      Toast.show('Incident created successfully', 'success');
+
+      // Update badge
+      document.getElementById('badge-incidents').textContent = MockData.incidents.length;
+    },
+
+    showAddUserModal() {
+      Modal.open('Add User', `
   < div class="form-group" >
         <label>Full Name</label>
         <input type="text" id="userName" placeholder="Enter full name">
@@ -1119,56 +1096,56 @@ const App = {
   < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
     <button class="btn-primary" onclick="App.addUser()">Add User</button>
 `);
-  },
+    },
 
-  addUser() {
-    const name = document.getElementById('userName').value;
-    const email = document.getElementById('userEmail').value;
-    const role = document.getElementById('userRole').value;
-    const password = document.getElementById('userPassword').value;
-    const confirmPassword = document.getElementById('userConfirmPassword').value;
-    
-    if (!name || !email || !role || !password) {
-      Toast.show('Please fill in all required fields', 'error');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      Toast.show('Passwords do not match', 'error');
-      return;
-    }
-    
-    if (password.length < 8) {
-      Toast.show('Password must be at least 8 characters', 'error');
-      return;
-    }
-    
-    const newUser = {
-      id: MockData.users ? MockData.users.length + 1 : 2,
-      uuid: `user - ${ Date.now() } `,
-      name: name,
-      email: email,
-      role: role,
-      status: 'active',
-      created_at: new Date().toISOString()
-    };
-    
-    // Initialize users array if it doesn't exist
-    if (!MockData.users) {
-      MockData.users = [MockData.user];
-    }
-    
-    MockData.users.push(newUser);
-    Modal.close();
-    App.loadUsers(); // Refresh the users list
-    Toast.show('User added successfully', 'success');
-  },
+    addUser() {
+      const name = document.getElementById('userName').value;
+      const email = document.getElementById('userEmail').value;
+      const role = document.getElementById('userRole').value;
+      const password = document.getElementById('userPassword').value;
+      const confirmPassword = document.getElementById('userConfirmPassword').value;
 
-  // Action functions
-  viewDevice(uuid) {
-    const device = MockData.devices.find(d => d.uuid === uuid);
-    if (device) {
-      Modal.open('Device Details', `
+      if (!name || !email || !role || !password) {
+        Toast.show('Please fill in all required fields', 'error');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Toast.show('Passwords do not match', 'error');
+        return;
+      }
+
+      if (password.length < 8) {
+        Toast.show('Password must be at least 8 characters', 'error');
+        return;
+      }
+
+      const newUser = {
+        id: MockData.users ? MockData.users.length + 1 : 2,
+        uuid: `user - ${Date.now()} `,
+        name: name,
+        email: email,
+        role: role,
+        status: 'active',
+        created_at: new Date().toISOString()
+      };
+
+      // Initialize users array if it doesn't exist
+      if (!MockData.users) {
+        MockData.users = [MockData.user];
+      }
+
+      MockData.users.push(newUser);
+      Modal.close();
+      App.loadUsers(); // Refresh the users list
+      Toast.show('User added successfully', 'success');
+    },
+
+    // Action functions
+    viewDevice(uuid) {
+      const device = MockData.devices.find(d => d.uuid === uuid);
+      if (device) {
+        Modal.open('Device Details', `
   < div class="detail-grid" >
           <div class="detail-field">
             <label>Device Name</label>
@@ -1202,22 +1179,22 @@ const App = {
   `, `
   < button class="btn-secondary" onclick = "Modal.close()" > Close</button >
     `);
-    }
-  },
+      }
+    },
 
-  quarantineDevice(uuid) {
-    const device = MockData.devices.find(d => d.uuid === uuid);
-    if (device) {
-      device.status = device.status === 'quarantined' ? 'online' : 'quarantined';
-      App.loadDevices();
-      Toast.show(`Device ${ device.device_name } ${ device.status === 'quarantined' ? 'quarantined' : 'released from quarantine' } `, 'warning');
-    }
-  },
+    quarantineDevice(uuid) {
+      const device = MockData.devices.find(d => d.uuid === uuid);
+      if (device) {
+        device.status = device.status === 'quarantined' ? 'online' : 'quarantined';
+        App.loadDevices();
+        Toast.show(`Device ${device.device_name} ${device.status === 'quarantined' ? 'quarantined' : 'released from quarantine'} `, 'warning');
+      }
+    },
 
-  viewThreat(uuid) {
-    const threat = MockData.threats.find(t => t.uuid === uuid);
-    if (threat) {
-      Modal.open('Threat Details', `
+    viewThreat(uuid) {
+      const threat = MockData.threats.find(t => t.uuid === uuid);
+      if (threat) {
+        Modal.open('Threat Details', `
   < div class="detail-grid" >
           <div class="detail-field">
             <label>Title</label>
@@ -1243,35 +1220,34 @@ const App = {
             <label>Detected</label>
             <div class="val">${formatDate(threat.detected_at)}</div>
           </div>
-          ${
-  threat.description ? `
+          ${threat.description ? `
             <div class="detail-field full">
               <label>Description</label>
               <div class="val">${escHtml(threat.description)}</div>
             </div>
           ` : ''
-}
+          }
         </div >
   `, `
   < button class="btn-secondary" onclick = "Modal.close()" > Close</button >
     <button class="btn-primary" onclick="App.assignThreat('${uuid}')">Assign to Me</button>
 `);
-    }
-  },
+      }
+    },
 
-  assignThreat(uuid) {
-    const threat = MockData.threats.find(t => t.uuid === uuid);
-    if (threat) {
-      threat.status = 'investigating';
-      App.loadThreats();
-      Toast.show(`Threat "${threat.title}" assigned to you`, 'success');
-    }
-  },
+    assignThreat(uuid) {
+      const threat = MockData.threats.find(t => t.uuid === uuid);
+      if (threat) {
+        threat.status = 'investigating';
+        App.loadThreats();
+        Toast.show(`Threat "${threat.title}" assigned to you`, 'success');
+      }
+    },
 
-  viewIncident(uuid) {
-    const incident = MockData.incidents.find(i => i.uuid === uuid);
-    if (incident) {
-      Modal.open('Incident Details', `
+    viewIncident(uuid) {
+      const incident = MockData.incidents.find(i => i.uuid === uuid);
+      if (incident) {
+        Modal.open('Incident Details', `
   < div class="detail-grid" >
           <div class="detail-field">
             <label>Title</label>
@@ -1293,34 +1269,32 @@ const App = {
             <label>Created</label>
             <div class="val">${formatDate(incident.created_at)}</div>
           </div>
-          ${
-  incident.description ? `
+          ${incident.description ? `
             <div class="detail-field full">
               <label>Description</label>
               <div class="val">${escHtml(incident.description)}</div>
             </div>
           ` : ''
-}
-          ${
-  incident.initial_actions ? `
+          }
+          ${incident.initial_actions ? `
             <div class="detail-field full">
               <label>Initial Actions</label>
               <div class="val">${escHtml(incident.initial_actions)}</div>
             </div>
           ` : ''
-}
+          }
         </div >
   `, `
   < button class="btn-secondary" onclick = "Modal.close()" > Close</button >
     <button class="btn-primary" onclick="App.editIncident('${uuid}')">Edit Incident</button>
 `);
-    }
-  },
+      }
+    },
 
-  editIncident(uuid) {
-    const incident = MockData.incidents.find(i => i.uuid === uuid);
-    if (incident) {
-      Modal.open('Edit Incident', `
+    editIncident(uuid) {
+      const incident = MockData.incidents.find(i => i.uuid === uuid);
+      if (incident) {
+        Modal.open('Edit Incident', `
   < div class="form-group" >
           <label>Title</label>
           <input type="text" id="editIncidentTitle" value="${escHtml(incident.title)}">
@@ -1350,27 +1324,27 @@ const App = {
   < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
     <button class="btn-primary" onclick="App.updateIncident('${uuid}')">Update Incident</button>
 `);
-    }
-  },
+      }
+    },
 
-  updateIncident(uuid) {
-    const incident = MockData.incidents.find(i => i.uuid === uuid);
-    if (incident) {
-      incident.title = document.getElementById('editIncidentTitle').value;
-      incident.severity = document.getElementById('editIncidentSeverity').value;
-      incident.status = document.getElementById('editIncidentStatus').value;
-      incident.description = document.getElementById('editIncidentDescription').value;
-      
-      Modal.close();
-      App.loadIncidents();
-      Toast.show('Incident updated successfully', 'success');
-    }
-  },
+    updateIncident(uuid) {
+      const incident = MockData.incidents.find(i => i.uuid === uuid);
+      if (incident) {
+        incident.title = document.getElementById('editIncidentTitle').value;
+        incident.severity = document.getElementById('editIncidentSeverity').value;
+        incident.status = document.getElementById('editIncidentStatus').value;
+        incident.description = document.getElementById('editIncidentDescription').value;
 
-  editUser(uuid) {
-    const user = MockData.users.find(u => u.uuid === uuid);
-    if (user) {
-      Modal.open('Edit User', `
+        Modal.close();
+        App.loadIncidents();
+        Toast.show('Incident updated successfully', 'success');
+      }
+    },
+
+    editUser(uuid) {
+      const user = MockData.users.find(u => u.uuid === uuid);
+      if (user) {
+        Modal.open('Edit User', `
   < div class="form-group" >
           <label>Full Name</label>
           <input type="text" id="editUserName" value="${escHtml(user.name)}">
@@ -1391,94 +1365,94 @@ const App = {
   < button class="btn-secondary" onclick = "Modal.close()" > Cancel</button >
     <button class="btn-primary" onclick="App.updateUser('${uuid}')">Update User</button>
 `);
-    }
-  },
+      }
+    },
 
-  updateUser(uuid) {
-    const user = MockData.users.find(u => u.uuid === uuid);
-    if (user) {
-      user.name = document.getElementById('editUserName').value;
-      user.email = document.getElementById('editUserEmail').value;
-      user.role = document.getElementById('editUserRole').value;
-      
-      Modal.close();
-      App.loadUsers();
-      Toast.show('User updated successfully', 'success');
-    }
-  },
+    updateUser(uuid) {
+      const user = MockData.users.find(u => u.uuid === uuid);
+      if (user) {
+        user.name = document.getElementById('editUserName').value;
+        user.email = document.getElementById('editUserEmail').value;
+        user.role = document.getElementById('editUserRole').value;
 
-  deleteUser(uuid) {
-    const user = MockData.users.find(u => u.uuid === uuid);
-    if (user && user.uuid !== MockData.user.uuid) {
-      const index = MockData.users.findIndex(u => u.uuid === uuid);
-      MockData.users.splice(index, 1);
-      App.loadUsers();
-      Toast.show(`User "${user.name}" deleted successfully`, 'warning');
-    } else {
-      Toast.show('Cannot delete your own account', 'error');
-    }
-  },
+        Modal.close();
+        App.loadUsers();
+        Toast.show('User updated successfully', 'success');
+      }
+    },
 
-  filterDevices(search) { console.log('Filtering devices:', search); },
-  filterByStatus(status) { console.log('Filtering by status:', status); }
-};
+    deleteUser(uuid) {
+      const user = MockData.users.find(u => u.uuid === uuid);
+      if (user && user.uuid !== MockData.user.uuid) {
+        const index = MockData.users.findIndex(u => u.uuid === uuid);
+        MockData.users.splice(index, 1);
+        App.loadUsers();
+        Toast.show(`User "${user.name}" deleted successfully`, 'warning');
+      } else {
+        Toast.show('Cannot delete your own account', 'error');
+      }
+    },
 
-// ── Event Listeners ─────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize app
-  App.init();
+    filterDevices(search) { console.log('Filtering devices:', search); },
+    filterByStatus(status) { console.log('Filtering by status:', status); }
+  };
 
-  // Login form
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    App.login(email, password);
-  });
+  // ── Event Listeners ─────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize app
+    App.init();
 
-  // Setup navigation after app is initialized
-  setTimeout(() => {
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
-        const page = item.dataset.page;
-        if (page) App.navigate(page);
-      });
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      App.login(email, password);
     });
-  }, 100);
 
-  // Mobile menu toggle
-  document.getElementById('menuToggle')?.addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
+    // Setup navigation after app is initialized
+    setTimeout(() => {
+      // Navigation
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          const page = item.dataset.page;
+          if (page) App.navigate(page);
+        });
+      });
+    }, 100);
+
+    // Mobile menu toggle
+    document.getElementById('menuToggle')?.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // Sidebar close
+    document.getElementById('sidebarToggle')?.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+    });
+
+    // Close notifications panel when clicking outside
+    document.addEventListener('click', (e) => {
+      const panel = document.getElementById('notificationsPanel');
+      const notifBtn = e.target.closest('.btn-icon[onclick*="toggleNotifications"]');
+      if (panel && !panel.contains(e.target) && !notifBtn) {
+        panel.classList.remove('open');
+        console.log('Notifications panel closed by clicking outside');
+      }
+    });
   });
 
-  // Sidebar close
-  document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-    document.getElementById('sidebar').classList.remove('open');
-  });
+  // ── Utility Functions ─────────────────────────────────────────────────────
+  function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+const icon = input.nextElementSibling.querySelector('i');
 
-  // Close notifications panel when clicking outside
-  document.addEventListener('click', (e) => {
-    const panel = document.getElementById('notificationsPanel');
-    const notifBtn = e.target.closest('.btn-icon[onclick*="toggleNotifications"]');
-    if (panel && !panel.contains(e.target) && !notifBtn) {
-      panel.classList.remove('open');
-      console.log('Notifications panel closed by clicking outside');
-    }
-  });
-});
-
-// ── Utility Functions ─────────────────────────────────────────────────────
-function togglePassword(inputId) {
-  const input = document.getElementById(inputId);
-  const icon = input.nextElementSibling.querySelector('i');
-  
-  if (input.type === 'password') {
-    input.type = 'text';
-    icon.className = 'fas fa-eye-slash';
-  } else {
-    input.type = 'password';
-    icon.className = 'fas fa-eye';
-  }
+if (input.type === 'password') {
+  input.type = 'text';
+  icon.className = 'fas fa-eye-slash';
+} else {
+  input.type = 'password';
+  icon.className = 'fas fa-eye';
+}
 }
