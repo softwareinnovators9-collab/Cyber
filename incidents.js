@@ -20,9 +20,9 @@ const PageTracker = {
 
     const page = this.getPageName();
     if (!stats[page]) {
-      stats[page] = { 
-        visits: 0, 
-        totalTimeMs: 0, 
+      stats[page] = {
+        visits: 0,
+        totalTimeMs: 0,
         lastVisit: new Date().toISOString(),
         loadTimes: [],
         averageLoadTime: 0
@@ -39,7 +39,7 @@ const PageTracker = {
       stats[page].loadTimes.push(loadTime);
       stats[page].averageLoadTime = stats[page].loadTimes.reduce((a, b, i, arr) => a + b, 0) / stats[page].loadTimes.length;
       this.saveJSON(stats);
-      
+
       console.log(`📄 ${page} loaded in ${loadTime.toFixed(2)}ms`);
     });
 
@@ -68,7 +68,7 @@ const PageTracker = {
   getPageLoadStats() {
     const stats = this.loadJSON();
     const loadStats = {};
-    
+
     Object.entries(stats).forEach(([page, data]) => {
       loadStats[page] = {
         visits: data.visits || 0,
@@ -79,14 +79,14 @@ const PageTracker = {
         slowestLoad: data.loadTimes && data.loadTimes.length > 0 ? Math.max(...data.loadTimes) : 0
       };
     });
-    
+
     return loadStats;
   },
 
   // NEW: Show page load statistics in console
   showPageLoadStats() {
     const loadStats = this.getPageLoadStats();
-    
+
     console.log('=== PAGE LOAD STATISTICS ===');
     Object.entries(loadStats).forEach(([page, stats]) => {
       console.log(`\n📊 ${page}:`);
@@ -118,14 +118,14 @@ const PageTracker = {
     const stats = this.getAllStats();
     const dataStr = JSON.stringify(stats, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
+
     const link = document.createElement('a');
     link.setAttribute('href', dataUri);
-    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0,10)}.json`);
+    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     Toast.show('Stats exported as JSON!', 'success');
   },
 
@@ -133,7 +133,7 @@ const PageTracker = {
   showRawJSON() {
     const stats = this.getAllStats();
     const jsonString = JSON.stringify(stats, null, 2);
-    
+
     Modal.open('Raw Page Stats JSON', `
       <pre style="background:#0f1318; padding:16px; border-radius:8px; overflow:auto; max-height:400px; font-family:monospace; font-size:13px; color:#94a3b8;">
 ${escHtml(jsonString)}
@@ -166,12 +166,12 @@ const MockData = {
     email: 'admin@cybershield.io',
     role: 'admin'
   },
-  
+
   incidents: [
     { id: 1, uuid: 'inc-1', title: 'Security Incident #1', severity: 'high', status: 'open', created_by_name: 'Admin User', created_at: new Date().toISOString() },
     { id: 2, uuid: 'inc-2', title: 'Data Breach Investigation', severity: 'critical', status: 'in_progress', created_by_name: 'Admin User', created_at: new Date(Date.now() - 86400000).toISOString() }
   ],
-  
+
   notifications: [
     { id: 1, title: 'New Incident Created', message: 'High severity incident logged', type: 'danger', is_read: false, created_at: new Date().toISOString() },
     { id: 2, title: 'Incident Updated', message: 'Incident status changed to in-progress', type: 'success', is_read: false, created_at: new Date(Date.now() - 1800000).toISOString() },
@@ -215,7 +215,7 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 // ── Helpers ─────────────────────────────────────────────────────────────
 function badge(val, prefix = '') {
   if (!val) return '<span class="mono" style="color:var(--text-3)">—</span>';
-  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g,' ')}</span>`;
+  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g, ' ')}</span>`;
 }
 function badgeSeverity(val) { return badge(val, ''); }
 function badgeStatus(val) { return badge(val, ''); }
@@ -223,9 +223,9 @@ function badgeStatus(val) { return badge(val, ''); }
 function timeAgo(dt) {
   if (!dt) return '—';
   const diff = Math.floor((Date.now() - new Date(dt)) / 1000);
-  if (diff < 60)    return `${diff}s ago`;
-  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return new Date(dt).toLocaleDateString();
 }
 
@@ -235,7 +235,7 @@ function formatDate(dt) {
 }
 
 function escHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ── App Core ──────────────────────────────────────────────────────────────
@@ -258,15 +258,15 @@ const App = {
   setUser(user) {
     App.user = user;
     localStorage.setItem('csws_user', JSON.stringify(user));
-    
+
     // Sidebar user info
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('sidebarUser').innerHTML = `
       <div class="user-avatar">${initials}</div>
       <div><div class="user-name">${escHtml(user.name)}</div><div class="user-role">${user.role}</div></div>`;
-    
+
     // Update incident badge
-    document.getElementById('badge-incidents').textContent = MockData.incidents.length;
+    document.getElementById('badge-incidents').textContent = DataStore.getIncidents().length;
   },
 
   showLogin() {
@@ -280,11 +280,12 @@ const App = {
     App.navigate('incidents');
     App.loadNotifications();
     App.notifInterval = setInterval(() => App.loadNotifications(), 30000);
-    
+
     // Initialize notification badge
     setTimeout(() => {
       const badge = document.querySelector('.notification-dot');
-      const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
+      const notifications = DataStore.getNotifications();
+      const unreadCount = notifications.filter(n => !n.is_read).length;
       if (badge) {
         badge.style.display = unreadCount > 0 ? 'block' : 'none';
       }
@@ -317,38 +318,38 @@ const App = {
   },
 
   loadIncidents() {
+    const incidents = DataStore.getIncidents();
     const content = document.getElementById('page-incidents');
     if (!content) return;
-    
-    content.innerHTML = `
-        <div class="section-toolbar">
-          <input type="text" class="search-input" placeholder="Search incidents..." onkeyup="App.filterIncidents(this.value)">
-          <div class="filter-group">
-            <select class="select-sm" onchange="App.filterByStatus(this.value)">
-              <option value="">All Status</option>
-              <option value="open">Open</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddIncidentModal()">
-            <i class="fas fa-plus"></i> Create Incident
-          </button>
-        </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Incident</th>
-              <th>Severity</th>
-              <th>Status</th>
-              <th>Created By</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody id="incidentsTableBody">
-              ${MockData.incidents.map(i => `
-                <tr>
+    content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search incidents..." onkeyup="App.filterIncidents(this.value)">
+        <div class="filter-group">
+          <select class="select-sm" onchange="App.filterByStatus(this.value)">
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddIncidentModal()">
+          <i class="fas fa-plus"></i> Create Incident
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Incident</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Created By</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="incidentsTableBody">
+            ${incidents.map(i => `
                   <td><strong>${escHtml(i.title)}</strong></td>
                   <td>${badgeSeverity(i.severity)}</td>
                   <td>${badgeStatus(i.status)}</td>
@@ -371,10 +372,11 @@ const App = {
   loadNotifications() {
     const panel = document.getElementById('notificationsList');
     if (!panel) return;
-    
-    const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
-    
-    panel.innerHTML = MockData.notifications.map(n => `
+
+    const notifications = DataStore.getNotifications();
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    panel.innerHTML = notifications.map(n => `
       <div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick="App.markNotificationRead(${n.id})">
         <div class="notif-dot ${n.type}"></div>
         <div class="notif-text">
@@ -399,9 +401,11 @@ const App = {
   },
 
   markNotificationRead(id) {
-    const notif = MockData.notifications.find(n => n.id === id);
+    const notifications = DataStore.getNotifications();
+    const notif = notifications.find(n => n.id === id);
     if (notif) {
       notif.is_read = true;
+      DataStore.saveNotifications(notifications);
       App.loadNotifications();
     }
   },
@@ -416,9 +420,10 @@ const App = {
   },
 
   login(email, password) {
-    // Simple mock authentication
-    if (email === 'admin@cybershield.io' && password === 'Admin@CyberShield1') {
-      App.setUser(MockData.user);
+    // Use DataStore for authentication
+    const user = DataStore.authenticate(email, password);
+    if (user) {
+      App.setUser(user);
       App.showApp();
       Toast.show('Login successful', 'success');
       return true;
@@ -471,14 +476,14 @@ const App = {
     const severity = document.getElementById('incidentSeverity').value;
     const description = document.getElementById('incidentDescription').value;
     const actions = document.getElementById('incidentActions').value;
-    
+
     if (!title || !severity) {
       Toast.show('Please fill in title and severity', 'error');
       return;
     }
-    
+
     const newIncident = {
-      id: MockData.incidents.length + 1,
+      id: DataStore.getIncidents().length + 1,
       uuid: `inc-${Date.now()}`,
       title: title,
       severity: severity,
@@ -488,19 +493,19 @@ const App = {
       description: description,
       initial_actions: actions
     };
-    
-    MockData.incidents.push(newIncident);
+
+    DataStore.addIncident(newIncident);
     Modal.close();
     App.loadIncidents();
     Toast.show('Incident created successfully', 'success');
-    
+
     // Update badge
-    document.getElementById('badge-incidents').textContent = MockData.incidents.length;
+    document.getElementById('badge-incidents').textContent = DataStore.getIncidents().length;
   },
 
   // Action functions
   viewIncident(uuid) {
-    const incident = MockData.incidents.find(i => i.uuid === uuid);
+    const incident = DataStore.getIncidents().find(i => i.uuid === uuid);
     if (incident) {
       Modal.open('Incident Details', `
         <div class="detail-grid">
@@ -545,7 +550,7 @@ const App = {
   },
 
   editIncident(uuid) {
-    const incident = MockData.incidents.find(i => i.uuid === uuid);
+    const incident = DataStore.getIncidents().find(i => i.uuid === uuid);
     if (incident) {
       Modal.open('Edit Incident', `
         <div class="form-group">
@@ -581,20 +586,21 @@ const App = {
   },
 
   updateIncident(uuid) {
-    const incident = MockData.incidents.find(i => i.uuid === uuid);
+    const incident = DataStore.getIncidents().find(i => i.uuid === uuid);
     if (incident) {
       incident.title = document.getElementById('editIncidentTitle').value;
       incident.severity = document.getElementById('editIncidentSeverity').value;
       incident.status = document.getElementById('editIncidentStatus').value;
       incident.description = document.getElementById('editIncidentDescription').value;
-      
+      DataStore.updateIncident(incident);
+
       Modal.close();
       App.loadIncidents();
       Toast.show('Incident updated successfully', 'success');
     }
   },
 
-  filterIncidents(search) { 
+  filterIncidents(search) {
     const rows = document.querySelectorAll('#incidentsTableBody tr');
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
@@ -602,7 +608,7 @@ const App = {
     });
   },
 
-  filterByStatus(status) { 
+  filterByStatus(status) {
     const rows = document.querySelectorAll('#incidentsTableBody tr');
     rows.forEach(row => {
       const statusCell = row.cells[2];
@@ -665,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
   const icon = input.nextElementSibling.querySelector('i');
-  
+
   if (input.type === 'password') {
     input.type = 'text';
     icon.className = 'fas fa-eye-slash';

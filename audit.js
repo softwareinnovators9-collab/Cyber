@@ -20,9 +20,9 @@ const PageTracker = {
 
     const page = this.getPageName();
     if (!stats[page]) {
-      stats[page] = { 
-        visits: 0, 
-        totalTimeMs: 0, 
+      stats[page] = {
+        visits: 0,
+        totalTimeMs: 0,
         lastVisit: new Date().toISOString(),
         loadTimes: [],
         averageLoadTime: 0
@@ -39,7 +39,7 @@ const PageTracker = {
       stats[page].loadTimes.push(loadTime);
       stats[page].averageLoadTime = stats[page].loadTimes.reduce((a, b, i, arr) => a + b, 0) / stats[page].loadTimes.length;
       this.saveJSON(stats);
-      
+
       console.log(`📄 ${page} loaded in ${loadTime.toFixed(2)}ms`);
     });
 
@@ -68,7 +68,7 @@ const PageTracker = {
   getPageLoadStats() {
     const stats = this.loadJSON();
     const loadStats = {};
-    
+
     Object.entries(stats).forEach(([page, data]) => {
       loadStats[page] = {
         visits: data.visits || 0,
@@ -79,14 +79,14 @@ const PageTracker = {
         slowestLoad: data.loadTimes && data.loadTimes.length > 0 ? Math.max(...data.loadTimes) : 0
       };
     });
-    
+
     return loadStats;
   },
 
   // NEW: Show page load statistics in console
   showPageLoadStats() {
     const loadStats = this.getPageLoadStats();
-    
+
     console.log('=== PAGE LOAD STATISTICS ===');
     Object.entries(loadStats).forEach(([page, stats]) => {
       console.log(`\n📊 ${page}:`);
@@ -118,14 +118,14 @@ const PageTracker = {
     const stats = this.getAllStats();
     const dataStr = JSON.stringify(stats, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
+
     const link = document.createElement('a');
     link.setAttribute('href', dataUri);
-    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0,10)}.json`);
+    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     Toast.show('Stats exported as JSON!', 'success');
   },
 
@@ -133,7 +133,7 @@ const PageTracker = {
   showRawJSON() {
     const stats = this.getAllStats();
     const jsonString = JSON.stringify(stats, null, 2);
-    
+
     Modal.open('Raw Page Stats JSON', `
       <pre style="background:#0f1318; padding:16px; border-radius:8px; overflow:auto; max-height:400px; font-family:monospace; font-size:13px; color:#94a3b8;">
 ${escHtml(jsonString)}
@@ -166,14 +166,14 @@ const MockData = {
     email: 'admin@cybershield.io',
     role: 'admin'
   },
-  
+
   auditLogs: [
     { id: 1, user_name: 'Admin User', action: 'login', resource: 'auth', ip_address: '192.168.1.1', status: 'success', created_at: new Date().toISOString() },
     { id: 2, user_name: 'Admin User', action: 'device_view', resource: 'devices', ip_address: '192.168.1.1', status: 'success', created_at: new Date(Date.now() - 600000).toISOString() },
     { id: 3, user_name: 'Admin User', action: 'threat_create', resource: 'threats', ip_address: '192.168.1.1', status: 'success', created_at: new Date(Date.now() - 1200000).toISOString() },
     { id: 4, user_name: 'Admin User', action: 'logout', resource: 'auth', ip_address: '192.168.1.1', status: 'success', created_at: new Date(Date.now() - 1800000).toISOString() }
   ],
-  
+
   notifications: [
     { id: 1, title: 'New Login Activity', message: 'Admin user logged in successfully', type: 'success', is_read: false, created_at: new Date().toISOString() },
     { id: 2, title: 'Security Alert', message: 'Multiple failed login attempts detected', type: 'warning', is_read: false, created_at: new Date(Date.now() - 3600000).toISOString() },
@@ -217,15 +217,15 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 // ── Helpers ─────────────────────────────────────────────────────────────
 function badge(val, prefix = '') {
   if (!val) return '<span class="mono" style="color:var(--text-3)">—</span>';
-  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g,' ')}</span>`;
+  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g, ' ')}</span>`;
 }
 
 function timeAgo(dt) {
   if (!dt) return '—';
   const diff = Math.floor((Date.now() - new Date(dt)) / 1000);
-  if (diff < 60)    return `${diff}s ago`;
-  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return new Date(dt).toLocaleDateString();
 }
 
@@ -235,7 +235,7 @@ function formatDate(dt) {
 }
 
 function escHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ── App Core ──────────────────────────────────────────────────────────────
@@ -258,7 +258,7 @@ const App = {
   setUser(user) {
     App.user = user;
     localStorage.setItem('csws_user', JSON.stringify(user));
-    
+
     // Sidebar user info
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('sidebarUser').innerHTML = `
@@ -277,11 +277,12 @@ const App = {
     App.navigate('audit');
     App.loadNotifications();
     App.notifInterval = setInterval(() => App.loadNotifications(), 30000);
-    
+
     // Initialize notification badge
     setTimeout(() => {
       const badge = document.querySelector('.notification-dot');
-      const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
+      const notifications = DataStore.getNotifications();
+      const unreadCount = notifications.filter(n => !n.is_read).length;
       if (badge) {
         badge.style.display = unreadCount > 0 ? 'block' : 'none';
       }
@@ -316,7 +317,9 @@ const App = {
   loadAuditLogs() {
     const content = document.getElementById('page-audit');
     if (!content) return;
-    
+
+    const auditLogs = DataStore.getAuditLogs();
+
     content.innerHTML = `
         <div class="section-toolbar">
           <input type="text" class="search-input" placeholder="Search audit logs..." onkeyup="App.filterAuditLogs(this.value)">
@@ -367,7 +370,7 @@ const App = {
               <th>Details</th>
             </tr></thead>
             <tbody id="auditLogsTableBody">
-              ${MockData.auditLogs.map(log => `
+              ${auditLogs.map(log => `
                 <tr>
                   <td class="mono">${formatDate(log.created_at)}</td>
                   <td>${escHtml(log.user_name)}</td>
@@ -387,10 +390,11 @@ const App = {
   loadNotifications() {
     const panel = document.getElementById('notificationsList');
     if (!panel) return;
-    
-    const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
-    
-    panel.innerHTML = MockData.notifications.map(n => `
+
+    const notifications = DataStore.getNotifications();
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    panel.innerHTML = notifications.map(n => `
       <div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick="App.markNotificationRead(${n.id})">
         <div class="notif-dot ${n.type}"></div>
         <div class="notif-text">
@@ -415,9 +419,11 @@ const App = {
   },
 
   markNotificationRead(id) {
-    const notif = MockData.notifications.find(n => n.id === id);
+    const notifications = DataStore.getNotifications();
+    const notif = notifications.find(n => n.id === id);
     if (notif) {
       notif.is_read = true;
+      DataStore.saveNotifications(notifications);
       App.loadNotifications();
     }
   },
@@ -432,9 +438,10 @@ const App = {
   },
 
   login(email, password) {
-    // Simple mock authentication
-    if (email === 'admin@cybershield.io' && password === 'Admin@CyberShield1') {
-      App.setUser(MockData.user);
+    // Use DataStore for authentication
+    const user = DataStore.authenticate(email, password);
+    if (user) {
+      App.setUser(user);
       App.showApp();
       Toast.show('Login successful', 'success');
       return true;
@@ -454,10 +461,12 @@ const App = {
 
   // Audit log specific functions
   exportAuditLogs() {
+    const auditLogs = DataStore.getAuditLogs();
+
     // Create CSV content
     const csvContent = [
       ['Timestamp', 'User', 'Action', 'Resource', 'IP Address', 'Status', 'Details'],
-      ...MockData.auditLogs.map(log => [
+      ...auditLogs.map(log => [
         formatDate(log.created_at),
         log.user_name,
         log.action,
@@ -477,11 +486,11 @@ const App = {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    
+
     Toast.show('Audit logs exported successfully', 'success');
   },
 
-  filterAuditLogs(search) { 
+  filterAuditLogs(search) {
     const rows = document.querySelectorAll('#auditLogsTableBody tr');
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
@@ -489,7 +498,7 @@ const App = {
     });
   },
 
-  filterByAction(action) { 
+  filterByAction(action) {
     const rows = document.querySelectorAll('#auditLogsTableBody tr');
     rows.forEach(row => {
       const actionCell = row.cells[2];
@@ -502,7 +511,7 @@ const App = {
     });
   },
 
-  filterByStatus(status) { 
+  filterByStatus(status) {
     const rows = document.querySelectorAll('#auditLogsTableBody tr');
     rows.forEach(row => {
       const statusCell = row.cells[5];
@@ -515,14 +524,14 @@ const App = {
     });
   },
 
-  filterByTimeRange(range) { 
+  filterByTimeRange(range) {
     const rows = document.querySelectorAll('#auditLogsTableBody tr');
     const now = new Date();
-    
+
     rows.forEach(row => {
       const dateCell = row.cells[0];
       const logDate = new Date(dateCell.textContent);
-      
+
       if (!range) {
         row.style.display = '';
       } else {
@@ -595,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
   const icon = input.nextElementSibling.querySelector('i');
-  
+
   if (input.type === 'password') {
     input.type = 'text';
     icon.className = 'fas fa-eye-slash';

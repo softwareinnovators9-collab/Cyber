@@ -20,9 +20,9 @@ const PageTracker = {
 
     const page = this.getPageName();
     if (!stats[page]) {
-      stats[page] = { 
-        visits: 0, 
-        totalTimeMs: 0, 
+      stats[page] = {
+        visits: 0,
+        totalTimeMs: 0,
         lastVisit: new Date().toISOString(),
         loadTimes: [],
         averageLoadTime: 0
@@ -39,7 +39,7 @@ const PageTracker = {
       stats[page].loadTimes.push(loadTime);
       stats[page].averageLoadTime = stats[page].loadTimes.reduce((a, b, i, arr) => a + b, 0) / stats[page].loadTimes.length;
       this.saveJSON(stats);
-      
+
       console.log(`📄 ${page} loaded in ${loadTime.toFixed(2)}ms`);
     });
 
@@ -68,7 +68,7 @@ const PageTracker = {
   getPageLoadStats() {
     const stats = this.loadJSON();
     const loadStats = {};
-    
+
     Object.entries(stats).forEach(([page, data]) => {
       loadStats[page] = {
         visits: data.visits || 0,
@@ -79,14 +79,14 @@ const PageTracker = {
         slowestLoad: data.loadTimes && data.loadTimes.length > 0 ? Math.max(...data.loadTimes) : 0
       };
     });
-    
+
     return loadStats;
   },
 
   // NEW: Show page load statistics in console
   showPageLoadStats() {
     const loadStats = this.getPageLoadStats();
-    
+
     console.log('=== PAGE LOAD STATISTICS ===');
     Object.entries(loadStats).forEach(([page, stats]) => {
       console.log(`\n📊 ${page}:`);
@@ -118,14 +118,14 @@ const PageTracker = {
     const stats = this.getAllStats();
     const dataStr = JSON.stringify(stats, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
+
     const link = document.createElement('a');
     link.setAttribute('href', dataUri);
-    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0,10)}.json`);
+    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     Toast.show('Stats exported as JSON!', 'success');
   },
 
@@ -133,7 +133,7 @@ const PageTracker = {
   showRawJSON() {
     const stats = this.getAllStats();
     const jsonString = JSON.stringify(stats, null, 2);
-    
+
     Modal.open('Raw Page Stats JSON', `
       <pre style="background:#0f1318; padding:16px; border-radius:8px; overflow:auto; max-height:400px; font-family:monospace; font-size:13px; color:#94a3b8;">
 ${escHtml(jsonString)}
@@ -166,13 +166,13 @@ const MockData = {
     email: 'admin@cybershield.io',
     role: 'admin'
   },
-  
+
   devices: [
     { id: 1, uuid: 'dev-1', device_name: 'Server-01', device_type: 'server', ip_address: '192.168.1.100', status: 'online', risk_score: 25, owner_name: 'Admin User', open_threats: 2 },
     { id: 2, uuid: 'dev-2', device_name: 'Workstation-01', device_type: 'workstation', ip_address: '192.168.1.101', status: 'offline', risk_score: 45, owner_name: 'Admin User', open_threats: 0 },
     { id: 3, uuid: 'dev-3', device_name: 'Mobile-01', device_type: 'mobile', ip_address: '192.168.1.102', status: 'online', risk_score: 15, owner_name: 'Admin User', open_threats: 1 }
   ],
-  
+
   notifications: [
     { id: 1, title: 'New Device Added', message: 'Device Server-02 successfully added', type: 'success', is_read: false, created_at: new Date().toISOString() },
     { id: 2, title: 'Device Status Change', message: 'Workstation-01 status changed', type: 'warning', is_read: false, created_at: new Date(Date.now() - 1800000).toISOString() },
@@ -216,7 +216,7 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 // ── Helpers ─────────────────────────────────────────────────────────────
 function badge(val, prefix = '') {
   if (!val) return '<span class="mono" style="color:var(--text-3)">—</span>';
-  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g,' ')}</span>`;
+  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g, ' ')}</span>`;
 }
 function badgeStatus(val) { return badge(val, ''); }
 
@@ -227,9 +227,9 @@ function dot(status) {
 function timeAgo(dt) {
   if (!dt) return '—';
   const diff = Math.floor((Date.now() - new Date(dt)) / 1000);
-  if (diff < 60)    return `${diff}s ago`;
-  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return new Date(dt).toLocaleDateString();
 }
 
@@ -239,7 +239,7 @@ function formatDate(dt) {
 }
 
 function escHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function riskBar(score) {
@@ -270,15 +270,15 @@ const App = {
   setUser(user) {
     App.user = user;
     localStorage.setItem('csws_user', JSON.stringify(user));
-    
+
     // Sidebar user info
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('sidebarUser').innerHTML = `
       <div class="user-avatar">${initials}</div>
       <div><div class="user-name">${escHtml(user.name)}</div><div class="user-role">${user.role}</div></div>`;
-    
+
     // Update device badge
-    document.getElementById('badge-devices').textContent = MockData.devices.length;
+    document.getElementById('badge-devices').textContent = DataStore.getDevices().length;
   },
 
   showLogin() {
@@ -292,11 +292,12 @@ const App = {
     App.navigate('devices');
     App.loadNotifications();
     App.notifInterval = setInterval(() => App.loadNotifications(), 30000);
-    
+
     // Initialize notification badge
     setTimeout(() => {
       const badge = document.querySelector('.notification-dot');
-      const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
+      const notifications = DataStore.getNotifications();
+      const unreadCount = notifications.filter(n => !n.is_read).length;
       if (badge) {
         badge.style.display = unreadCount > 0 ? 'block' : 'none';
       }
@@ -329,39 +330,39 @@ const App = {
   },
 
   loadDevices() {
+    const devices = DataStore.getDevices();
     const content = document.getElementById('page-devices');
     if (!content) return;
-    
-    content.innerHTML = `
-        <div class="section-toolbar">
-          <input type="text" class="search-input" placeholder="Search devices..." onkeyup="App.filterDevices(this.value)">
-          <div class="filter-group">
-            <select class="select-sm" onchange="App.filterByStatus(this.value)">
-              <option value="">All Status</option>
-              <option value="online">Online</option>
-              <option value="offline">Offline</option>
-              <option value="quarantined">Quarantined</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddDeviceModal()">
-            <i class="fas fa-plus"></i> Add Device
-          </button>
-        </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Device</th>
-              <th>Type</th>
-              <th>IP Address</th>
-              <th>Status</th>
-              <th>Risk Score</th>
-              <th>Owner</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody id="devicesTableBody">
-              ${MockData.devices.map(d => `
-                <tr>
+    content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search devices..." onkeyup="App.filterDevices(this.value)">
+        <div class="filter-group">
+          <select class="select-sm" onchange="App.filterByStatus(this.value)">
+            <option value="">All Status</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+            <option value="quarantined">Quarantined</option>
+          </select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddDeviceModal()">
+          <i class="fas fa-plus"></i> Add Device
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Device</th>
+            <th>Type</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Risk Score</th>
+            <th>Owner</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="devicesTableBody">
+            ${devices.map(d => `
                   <td><strong>${escHtml(d.device_name)}</strong></td>
                   <td>${escHtml(d.device_type)}</td>
                   <td class="mono">${escHtml(d.ip_address)}</td>
@@ -385,10 +386,11 @@ const App = {
   loadNotifications() {
     const panel = document.getElementById('notificationsList');
     if (!panel) return;
-    
-    const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
-    
-    panel.innerHTML = MockData.notifications.map(n => `
+
+    const notifications = DataStore.getNotifications();
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    panel.innerHTML = notifications.map(n => `
       <div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick="App.markNotificationRead(${n.id})">
         <div class="notif-dot ${n.type}"></div>
         <div class="notif-text">
@@ -413,9 +415,11 @@ const App = {
   },
 
   markNotificationRead(id) {
-    const notif = MockData.notifications.find(n => n.id === id);
+    const notifications = DataStore.getNotifications();
+    const notif = notifications.find(n => n.id === id);
     if (notif) {
       notif.is_read = true;
+      DataStore.saveNotifications(notifications);
       App.loadNotifications();
     }
   },
@@ -430,9 +434,10 @@ const App = {
   },
 
   login(email, password) {
-    // Simple mock authentication
-    if (email === 'admin@cybershield.io' && password === 'Admin@CyberShield1') {
-      App.setUser(MockData.user);
+    // Use DataStore for authentication
+    const user = DataStore.authenticate(email, password);
+    if (user) {
+      App.setUser(user);
       App.showApp();
       Toast.show('Login successful', 'success');
       return true;
@@ -486,14 +491,14 @@ const App = {
     const type = document.getElementById('deviceType').value;
     const ip = document.getElementById('deviceIP').value;
     const owner = document.getElementById('deviceOwner').value || App.user.name;
-    
+
     if (!name || !ip) {
       Toast.show('Please fill in device name and IP address', 'error');
       return;
     }
-    
+
     const newDevice = {
-      id: MockData.devices.length + 1,
+      id: DataStore.getDevices().length + 1,
       uuid: `dev-${Date.now()}`,
       device_name: name,
       device_type: type,
@@ -503,19 +508,19 @@ const App = {
       owner_name: owner,
       open_threats: 0
     };
-    
-    MockData.devices.push(newDevice);
+
+    DataStore.addDevice(newDevice);
     Modal.close();
     App.loadDevices();
     Toast.show('Device added successfully', 'success');
-    
+
     // Update badge
-    document.getElementById('badge-devices').textContent = MockData.devices.length;
+    document.getElementById('badge-devices').textContent = DataStore.getDevices().length;
   },
 
   // Action functions
   viewDevice(uuid) {
-    const device = MockData.devices.find(d => d.uuid === uuid);
+    const device = DataStore.getDevices().find(d => d.uuid === uuid);
     if (device) {
       Modal.open('Device Details', `
         <div class="detail-grid">
@@ -555,15 +560,16 @@ const App = {
   },
 
   quarantineDevice(uuid) {
-    const device = MockData.devices.find(d => d.uuid === uuid);
+    const device = DataStore.getDevices().find(d => d.uuid === uuid);
     if (device) {
       device.status = device.status === 'quarantined' ? 'online' : 'quarantined';
+      DataStore.updateDevice(device);
       App.loadDevices();
       Toast.show(`Device ${device.device_name} ${device.status === 'quarantined' ? 'quarantined' : 'released from quarantine'}`, 'warning');
     }
   },
 
-  filterDevices(search) { 
+  filterDevices(search) {
     const rows = document.querySelectorAll('#devicesTableBody tr');
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
@@ -571,7 +577,7 @@ const App = {
     });
   },
 
-  filterByStatus(status) { 
+  filterByStatus(status) {
     const rows = document.querySelectorAll('#devicesTableBody tr');
     rows.forEach(row => {
       const statusCell = row.cells[3];
@@ -634,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
   const icon = input.nextElementSibling.querySelector('i');
-  
+
   if (input.type === 'password') {
     input.type = 'text';
     icon.className = 'fas fa-eye-slash';

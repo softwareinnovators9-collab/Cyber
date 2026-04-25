@@ -20,9 +20,9 @@ const PageTracker = {
 
     const page = this.getPageName();
     if (!stats[page]) {
-      stats[page] = { 
-        visits: 0, 
-        totalTimeMs: 0, 
+      stats[page] = {
+        visits: 0,
+        totalTimeMs: 0,
         lastVisit: new Date().toISOString(),
         loadTimes: [],
         averageLoadTime: 0
@@ -39,7 +39,7 @@ const PageTracker = {
       stats[page].loadTimes.push(loadTime);
       stats[page].averageLoadTime = stats[page].loadTimes.reduce((a, b, i, arr) => a + b, 0) / stats[page].loadTimes.length;
       this.saveJSON(stats);
-      
+
       console.log(`📄 ${page} loaded in ${loadTime.toFixed(2)}ms`);
     });
 
@@ -68,7 +68,7 @@ const PageTracker = {
   getPageLoadStats() {
     const stats = this.loadJSON();
     const loadStats = {};
-    
+
     Object.entries(stats).forEach(([page, data]) => {
       loadStats[page] = {
         visits: data.visits || 0,
@@ -79,14 +79,14 @@ const PageTracker = {
         slowestLoad: data.loadTimes && data.loadTimes.length > 0 ? Math.max(...data.loadTimes) : 0
       };
     });
-    
+
     return loadStats;
   },
 
   // NEW: Show page load statistics in console
   showPageLoadStats() {
     const loadStats = this.getPageLoadStats();
-    
+
     console.log('=== PAGE LOAD STATISTICS ===');
     Object.entries(loadStats).forEach(([page, stats]) => {
       console.log(`\n📊 ${page}:`);
@@ -118,14 +118,14 @@ const PageTracker = {
     const stats = this.getAllStats();
     const dataStr = JSON.stringify(stats, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
+
     const link = document.createElement('a');
     link.setAttribute('href', dataUri);
-    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0,10)}.json`);
+    link.setAttribute('download', `cybershield-page-stats-${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     Toast.show('Stats exported as JSON!', 'success');
   },
 
@@ -133,7 +133,7 @@ const PageTracker = {
   showRawJSON() {
     const stats = this.getAllStats();
     const jsonString = JSON.stringify(stats, null, 2);
-    
+
     Modal.open('Raw Page Stats JSON', `
       <pre style="background:#0f1318; padding:16px; border-radius:8px; overflow:auto; max-height:400px; font-family:monospace; font-size:13px; color:#94a3b8;">
 ${escHtml(jsonString)}
@@ -166,13 +166,13 @@ const MockData = {
     email: 'admin@cybershield.io',
     role: 'admin'
   },
-  
+
   threats: [
     { id: 1, uuid: 'threat-1', title: 'Suspicious Login Attempt', severity: 'high', category: 'intrusion', status: 'open', device_name: 'Server-01', detected_at: new Date().toISOString() },
     { id: 2, uuid: 'threat-2', title: 'Malware Detected', severity: 'critical', category: 'malware', status: 'open', device_name: 'Workstation-01', detected_at: new Date(Date.now() - 3600000).toISOString() },
     { id: 3, uuid: 'threat-3', title: 'Phishing Email', severity: 'medium', category: 'phishing', status: 'investigating', device_name: 'Mobile-01', detected_at: new Date(Date.now() - 7200000).toISOString() }
   ],
-  
+
   notifications: [
     { id: 1, title: 'New Threat Detected', message: 'High severity threat on Server-01', type: 'danger', is_read: false, created_at: new Date().toISOString() },
     { id: 2, title: 'Threat Assigned', message: 'Threat assigned to security team', type: 'success', is_read: false, created_at: new Date(Date.now() - 1800000).toISOString() },
@@ -216,7 +216,7 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 // ── Helpers ─────────────────────────────────────────────────────────────
 function badge(val, prefix = '') {
   if (!val) return '<span class="mono" style="color:var(--text-3)">—</span>';
-  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g,' ')}</span>`;
+  return `<span class="badge badge-${prefix}${val}">${val.replace(/_/g, ' ')}</span>`;
 }
 function badgeSeverity(val) { return badge(val, ''); }
 function badgeStatus(val) { return badge(val, ''); }
@@ -228,9 +228,9 @@ function dot(status) {
 function timeAgo(dt) {
   if (!dt) return '—';
   const diff = Math.floor((Date.now() - new Date(dt)) / 1000);
-  if (diff < 60)    return `${diff}s ago`;
-  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return new Date(dt).toLocaleDateString();
 }
 
@@ -240,7 +240,7 @@ function formatDate(dt) {
 }
 
 function escHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ── App Core ──────────────────────────────────────────────────────────────
@@ -263,15 +263,15 @@ const App = {
   setUser(user) {
     App.user = user;
     localStorage.setItem('csws_user', JSON.stringify(user));
-    
+
     // Sidebar user info
     const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('sidebarUser').innerHTML = `
       <div class="user-avatar">${initials}</div>
       <div><div class="user-name">${escHtml(user.name)}</div><div class="user-role">${user.role}</div></div>`;
-    
+
     // Update threat badge
-    document.getElementById('badge-threats').textContent = MockData.threats.length;
+    document.getElementById('badge-threats').textContent = DataStore.getThreats().length;
   },
 
   showLogin() {
@@ -285,11 +285,12 @@ const App = {
     App.navigate('threats');
     App.loadNotifications();
     App.notifInterval = setInterval(() => App.loadNotifications(), 30000);
-    
+
     // Initialize notification badge
     setTimeout(() => {
       const badge = document.querySelector('.notification-dot');
-      const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
+      const notifications = DataStore.getNotifications();
+      const unreadCount = notifications.filter(n => !n.is_read).length;
       if (badge) {
         badge.style.display = unreadCount > 0 ? 'block' : 'none';
       }
@@ -322,40 +323,40 @@ const App = {
   },
 
   loadThreats() {
+    const threats = DataStore.getThreats();
     const content = document.getElementById('page-threats');
     if (!content) return;
-    
-    content.innerHTML = `
-        <div class="section-toolbar">
-          <input type="text" class="search-input" placeholder="Search threats..." onkeyup="App.filterThreats(this.value)">
-          <div class="filter-group">
-            <select class="select-sm" onchange="App.filterBySeverity(this.value)">
-              <option value="">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddThreatModal()">
-            <i class="fas fa-plus"></i> Log Threat
-          </button>
-        </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Threat</th>
-              <th>Category</th>
-              <th>Severity</th>
-              <th>Status</th>
-              <th>Device</th>
-              <th>Detected</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody id="threatsTableBody">
-              ${MockData.threats.map(t => `
-                <tr>
+    content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search threats..." onkeyup="App.filterThreats(this.value)">
+        <div class="filter-group">
+          <select class="select-sm" onchange="App.filterBySeverity(this.value)">
+            <option value="">All Severities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddThreatModal()">
+          <i class="fas fa-plus"></i> Log Threat
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Threat</th>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Device</th>
+            <th>Detected</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="threatsTableBody">
+            ${threats.map(t => `
                   <td><strong>${escHtml(t.title)}</strong></td>
                   <td>${escHtml(t.category)}</td>
                   <td>${badgeSeverity(t.severity)}</td>
@@ -379,10 +380,11 @@ const App = {
   loadNotifications() {
     const panel = document.getElementById('notificationsList');
     if (!panel) return;
-    
-    const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
-    
-    panel.innerHTML = MockData.notifications.map(n => `
+
+    const notifications = DataStore.getNotifications();
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    panel.innerHTML = notifications.map(n => `
       <div class="notif-item ${!n.is_read ? 'unread' : ''}" onclick="App.markNotificationRead(${n.id})">
         <div class="notif-dot ${n.type}"></div>
         <div class="notif-text">
@@ -407,9 +409,11 @@ const App = {
   },
 
   markNotificationRead(id) {
-    const notif = MockData.notifications.find(n => n.id === id);
+    const notifications = DataStore.getNotifications();
+    const notif = notifications.find(n => n.id === id);
     if (notif) {
       notif.is_read = true;
+      DataStore.saveNotifications(notifications);
       App.loadNotifications();
     }
   },
@@ -424,9 +428,10 @@ const App = {
   },
 
   login(email, password) {
-    // Simple mock authentication
-    if (email === 'admin@cybershield.io' && password === 'Admin@CyberShield1') {
-      App.setUser(MockData.user);
+    // Use DataStore for authentication
+    const user = DataStore.authenticate(email, password);
+    if (user) {
+      App.setUser(user);
       App.showApp();
       Toast.show('Login successful', 'success');
       return true;
@@ -496,14 +501,14 @@ const App = {
     const severity = document.getElementById('threatSeverity').value;
     const device = document.getElementById('threatDevice').value;
     const description = document.getElementById('threatDescription').value;
-    
+
     if (!title || !category || !severity || !device) {
       Toast.show('Please fill in all required fields', 'error');
       return;
     }
-    
+
     const newThreat = {
-      id: MockData.threats.length + 1,
+      id: DataStore.getThreats().length + 1,
       uuid: `threat-${Date.now()}`,
       title: title,
       category: category,
@@ -513,19 +518,19 @@ const App = {
       detected_at: new Date().toISOString(),
       description: description
     };
-    
-    MockData.threats.push(newThreat);
+
+    DataStore.addThreat(newThreat);
     Modal.close();
     App.loadThreats();
     Toast.show('Threat logged successfully', 'success');
-    
+
     // Update badge
-    document.getElementById('badge-threats').textContent = MockData.threats.length;
+    document.getElementById('badge-threats').textContent = DataStore.getThreats().length;
   },
 
   // Action functions
   viewThreat(uuid) {
-    const threat = MockData.threats.find(t => t.uuid === uuid);
+    const threat = DataStore.getThreats().find(t => t.uuid === uuid);
     if (threat) {
       Modal.open('Threat Details', `
         <div class="detail-grid">
@@ -568,15 +573,16 @@ const App = {
   },
 
   assignThreat(uuid) {
-    const threat = MockData.threats.find(t => t.uuid === uuid);
+    const threat = DataStore.getThreats().find(t => t.uuid === uuid);
     if (threat) {
       threat.status = 'investigating';
+      DataStore.updateThreat(threat);
       App.loadThreats();
       Toast.show(`Threat "${threat.title}" assigned to you`, 'success');
     }
   },
 
-  filterThreats(search) { 
+  filterThreats(search) {
     const rows = document.querySelectorAll('#threatsTableBody tr');
     rows.forEach(row => {
       const text = row.textContent.toLowerCase();
@@ -584,7 +590,7 @@ const App = {
     });
   },
 
-  filterBySeverity(severity) { 
+  filterBySeverity(severity) {
     const rows = document.querySelectorAll('#threatsTableBody tr');
     rows.forEach(row => {
       const severityCell = row.cells[2];
@@ -647,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
   const icon = input.nextElementSibling.querySelector('i');
-  
+
   if (input.type === 'password') {
     input.type = 'text';
     icon.className = 'fas fa-eye-slash';

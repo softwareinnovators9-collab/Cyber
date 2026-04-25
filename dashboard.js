@@ -240,7 +240,8 @@ const App = {
     // Initialize notification badge
     setTimeout(() => {
       const badge = document.querySelector('.notification-dot');
-      const unreadCount = MockData.notifications.filter(n => !n.is_read).length;
+      const notifications = DataStore.getNotifications();
+      const unreadCount = notifications.filter(n => !n.is_read).length;
       if (badge) {
         badge.style.display = unreadCount > 0 ? 'block' : 'none';
         console.log('Notification badge initialized, unread count:', unreadCount);
@@ -685,45 +686,47 @@ const App = {
         console.error('Audit logs container not found!');
         return;
       }
-      content.innerHTML = `
-  < div class="section-toolbar" >
-          <input type="text" class="search-input" placeholder="Search audit logs...">
-          <div class="filter-group">
-            <select class="select-sm">
-              <option value="">All Actions</option>
-              <option value="login">Login</option>
-              <option value="logout">Logout</option>
-              <option value="device_view">Device View</option>
-              <option value="threat_create">Threat Create</option>
-            </select>
-          </div>
-        </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>User</th>
-              <th>Action</th>
-              <th>Resource</th>
-              <th>IP Address</th>
-              <th>Status</th>
-              <th>Time</th>
-            </tr></thead>
-            <tbody>
-              ${MockData.auditLogs.map(a => `
-                <tr>
-                  <td>${escHtml(a.user_name)}</td>
-                  <td>${escHtml(a.action)}</td>
-                  <td>${escHtml(a.resource)}</td>
-                  <td class="mono">${escHtml(a.ip_address)}</td>
-                  <td>${badge(a.status)}</td>
-                  <td>${timeAgo(a.created_at)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+      const auditLogs = DataStore.getAuditLogs();
+      content.innerHTML = `
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search audit logs...">
+        <div class="filter-group">
+          <select class="select-sm">
+            <option value="">All Actions</option>
+            <option value="login">Login</option>
+            <option value="logout">Logout</option>
+            <option value="device_view">Device View</option>
+            <option value="threat_create">Threat Create</option>
+          </select>
         </div>
-`;
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Resource</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr></thead>
+          <tbody>
+            ${auditLogs.map(a => `
+              <tr>
+                <td>${escHtml(a.user_name)}</td>
+                <td>${escHtml(a.action)}</td>
+                <td>${escHtml(a.resource)}</td>
+                <td class="mono">${escHtml(a.ip_address)}</td>
+                <td>${badge(a.status)}</td>
+                <td>${timeAgo(a.created_at)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
       console.log('Audit logs loaded successfully');
     },
 
@@ -735,64 +738,55 @@ const App = {
         return;
       }
 
-      // Initialize users array if it doesn't exist
-      if (!MockData.users) {
-        MockData.users = [MockData.user];
-      }
+      const users = DataStore.getUsers();
+      const currentUser = DataStore.getCurrentUser();
 
       content.innerHTML = `
-  < div class="section-toolbar" >
-          <input type="text" class="search-input" placeholder="Search users...">
-          <div class="filter-group">
-            <select class="select-sm">
-              <option value="">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="analyst">Analyst</option>
-              <option value="viewer">Viewer</option>
-            </select>
-          </div>
-          <button class="btn-primary btn-sm" onclick="App.showAddUserModal()">
-            <i class="fas fa-plus"></i> Add User
-          </button>
+      <div class="section-toolbar">
+        <input type="text" class="search-input" placeholder="Search users...">
+        <div class="filter-group">
+          <select class="select-sm">
+            <option value="">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="analyst">Analyst</option>
+            <option value="viewer">Viewer</option>
+          </select>
         </div>
+        <button class="btn-primary btn-sm" onclick="App.showAddUserModal()">
+          <i class="fas fa-plus"></i> Add User
+        </button>
+      </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Last Login</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody>
-              ${MockData.users.map(u => `
-                <tr>
-                  <td><strong>${escHtml(u.name)}</strong></td>
-                  <td>${escHtml(u.email)}</td>
-                  <td>${badge(u.role)}</td>
-                  <td>${badge('success')}</td>
-                  <td>${timeAgo(u.created_at)}</td>
-                  <td>
-                    <div class="actions">
-                      <button class="action-btn" onclick="App.editUser('${u.uuid}')">Edit</button>
-                      ${u.uuid !== MockData.user.uuid ? `<button class="action-btn red" onclick="App.deleteUser('${u.uuid}')">Delete</button>` : ''}
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-`;
-      console.log('Users loaded successfully');
-    },
-
-    loadNotifications() {
-      const panel = document.getElementById('notificationsList');
-      if (!panel) return;
-
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Last Login</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td><strong>${escHtml(u.name)}</strong></td>
+                <td>${escHtml(u.email)}</td>
+                <td>${badge(u.role)}</td>
+                <td>${badge('success')}</td>
+                <td>${timeAgo(u.created_at)}</td>
+                <td>
+                  <div class="actions">
+                    <button class="action-btn" onclick="App.editUser('${u.uuid}')">Edit</button>
+                    ${u.uuid !== currentUser.uuid ? `<button class="action-btn red" onclick="App.deleteUser('${u.uuid}')">Delete</button>` : ''}
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
       const notifications = DataStore.getNotifications();
       const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -1046,8 +1040,8 @@ const App = {
       }
 
       const newIncident = {
-        id: MockData.incidents.length + 1,
-        uuid: `inc - ${Date.now()} `,
+        id: DataStore.getIncidents().length + 1,
+        uuid: `inc-${Date.now()}`,
         title: title,
         severity: severity,
         status: 'open',
@@ -1057,13 +1051,13 @@ const App = {
         initial_actions: actions
       };
 
-      MockData.incidents.push(newIncident);
+      DataStore.addIncident(newIncident);
       Modal.close();
       App.loadIncidents(); // Refresh the incidents list
       Toast.show('Incident created successfully', 'success');
 
       // Update badge
-      document.getElementById('badge-incidents').textContent = MockData.incidents.length;
+      document.getElementById('badge-incidents').textContent = DataStore.getIncidents().length;
     },
 
     showAddUserModal() {
@@ -1121,8 +1115,8 @@ const App = {
       }
 
       const newUser = {
-        id: MockData.users ? MockData.users.length + 1 : 2,
-        uuid: `user - ${Date.now()} `,
+        id: DataStore.getUsers().length + 1,
+        uuid: `user-${Date.now()}`,
         name: name,
         email: email,
         role: role,
@@ -1130,12 +1124,7 @@ const App = {
         created_at: new Date().toISOString()
       };
 
-      // Initialize users array if it doesn't exist
-      if (!MockData.users) {
-        MockData.users = [MockData.user];
-      }
-
-      MockData.users.push(newUser);
+      DataStore.addUser(newUser);
       Modal.close();
       App.loadUsers(); // Refresh the users list
       Toast.show('User added successfully', 'success');
@@ -1143,7 +1132,7 @@ const App = {
 
     // Action functions
     viewDevice(uuid) {
-      const device = MockData.devices.find(d => d.uuid === uuid);
+      const device = DataStore.getDevices().find(d => d.uuid === uuid);
       if (device) {
         Modal.open('Device Details', `
   < div class="detail-grid" >
@@ -1183,16 +1172,17 @@ const App = {
     },
 
     quarantineDevice(uuid) {
-      const device = MockData.devices.find(d => d.uuid === uuid);
+      const device = DataStore.getDevices().find(d => d.uuid === uuid);
       if (device) {
         device.status = device.status === 'quarantined' ? 'online' : 'quarantined';
+        DataStore.updateDevice(device);
         App.loadDevices();
-        Toast.show(`Device ${device.device_name} ${device.status === 'quarantined' ? 'quarantined' : 'released from quarantine'} `, 'warning');
+        Toast.show(`Device ${device.device_name} ${device.status === 'quarantined' ? 'quarantined' : 'released from quarantine'}`, 'warning');
       }
     },
 
     viewThreat(uuid) {
-      const threat = MockData.threats.find(t => t.uuid === uuid);
+      const threat = DataStore.getThreats().find(t => t.uuid === uuid);
       if (threat) {
         Modal.open('Threat Details', `
   < div class="detail-grid" >
@@ -1236,16 +1226,17 @@ const App = {
     },
 
     assignThreat(uuid) {
-      const threat = MockData.threats.find(t => t.uuid === uuid);
+      const threat = DataStore.getThreats().find(t => t.uuid === uuid);
       if (threat) {
         threat.status = 'investigating';
+        DataStore.updateThreat(threat);
         App.loadThreats();
         Toast.show(`Threat "${threat.title}" assigned to you`, 'success');
       }
     },
 
     viewIncident(uuid) {
-      const incident = MockData.incidents.find(i => i.uuid === uuid);
+      const incident = DataStore.getIncidents().find(i => i.uuid === uuid);
       if (incident) {
         Modal.open('Incident Details', `
   < div class="detail-grid" >
@@ -1292,7 +1283,7 @@ const App = {
     },
 
     editIncident(uuid) {
-      const incident = MockData.incidents.find(i => i.uuid === uuid);
+      const incident = DataStore.getIncidents().find(i => i.uuid === uuid);
       if (incident) {
         Modal.open('Edit Incident', `
   < div class="form-group" >
@@ -1328,13 +1319,13 @@ const App = {
     },
 
     updateIncident(uuid) {
-      const incident = MockData.incidents.find(i => i.uuid === uuid);
+      const incident = DataStore.getIncidents().find(i => i.uuid === uuid);
       if (incident) {
         incident.title = document.getElementById('editIncidentTitle').value;
         incident.severity = document.getElementById('editIncidentSeverity').value;
         incident.status = document.getElementById('editIncidentStatus').value;
         incident.description = document.getElementById('editIncidentDescription').value;
-
+        DataStore.updateIncident(incident);
         Modal.close();
         App.loadIncidents();
         Toast.show('Incident updated successfully', 'success');
@@ -1342,7 +1333,7 @@ const App = {
     },
 
     editUser(uuid) {
-      const user = MockData.users.find(u => u.uuid === uuid);
+      const user = DataStore.getUsers().find(u => u.uuid === uuid);
       if (user) {
         Modal.open('Edit User', `
   < div class="form-group" >
@@ -1369,12 +1360,12 @@ const App = {
     },
 
     updateUser(uuid) {
-      const user = MockData.users.find(u => u.uuid === uuid);
+      const user = DataStore.getUsers().find(u => u.uuid === uuid);
       if (user) {
         user.name = document.getElementById('editUserName').value;
         user.email = document.getElementById('editUserEmail').value;
         user.role = document.getElementById('editUserRole').value;
-
+        DataStore.updateUser(user);
         Modal.close();
         App.loadUsers();
         Toast.show('User updated successfully', 'success');
@@ -1382,10 +1373,10 @@ const App = {
     },
 
     deleteUser(uuid) {
-      const user = MockData.users.find(u => u.uuid === uuid);
-      if (user && user.uuid !== MockData.user.uuid) {
-        const index = MockData.users.findIndex(u => u.uuid === uuid);
-        MockData.users.splice(index, 1);
+      const user = DataStore.getUsers().find(u => u.uuid === uuid);
+      const currentUser = DataStore.getCurrentUser();
+      if (user && user.uuid !== currentUser.uuid) {
+        DataStore.deleteUser(uuid);
         App.loadUsers();
         Toast.show(`User "${user.name}" deleted successfully`, 'warning');
       } else {
