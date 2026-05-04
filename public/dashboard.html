@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/components.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-shield-alt"></i>
+                <span>CyberShield</span>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li><a href="#dashboard" class="nav-link active" data-section="dashboard"><i
+                                class="fas fa-chart-line"></i> <span>Dashboard</span></a></li>
+                    <li><a href="#threats" class="nav-link" data-section="threats"><i
+                                class="fas fa-exclamation-triangle"></i> <span>Threats</span></a></li>
+                    <li><a href="#incidents" class="nav-link" data-section="incidents"><i class="fas fa-fire"></i>
+                            <span>Incidents</span></a></li>
+                    <li><a href="#devices" class="nav-link" data-section="devices"><i class="fas fa-server"></i>
+                            <span>Devices</span></a></li>
+                    <li><a href="#audit" class="nav-link" data-section="audit"><i class="fas fa-history"></i>
+                            <span>Audit Logs</span></a></li>
+                    <li><a href="#settings" class="nav-link" data-section="settings"><i class="fas fa-cog"></i>
+                            <span>Settings</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search..." id="searchInput">
+                    </div>
+                    <div class="header-icons">
+                        <button class="icon-btn" id="notificationBtn" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge" id="notificationBadge">0</span>
+                        </button>
+                        <button class="icon-btn" id="settingsBtn" title="Settings">
+                            <i class="fas fa-sliders-h"></i>
+                        </button>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <span class="user-name" id="userName">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notification Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="section active">
+                <div class="stats-grid" id="statsGrid"></div>
+                <div class="charts-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>System Health</h2>
+                            <button class="btn-secondary btn-sm">View Details</button>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="healthChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Threat Timeline</h2>
+                            <button class="btn-secondary btn-sm">View All</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="threatTimeline"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Live Threat Feed</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="threatFeed"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Threats Section -->
+            <section id="threats-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Security Threats</h2>
+                        <div class="filter-buttons">
+                            <button class="btn-secondary btn-sm" onclick="filterThreats('critical')">Critical</button>
+                            <button class="btn-secondary btn-sm" onclick="filterThreats('high')">High</button>
+                            <button class="btn-secondary btn-sm" onclick="filterThreats('all')">All</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="threatsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Severity</th>
+                                        <th>Source</th>
+                                        <th>Target</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="threatsTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Incidents Section -->
+            <section id="incidents-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Incident Management</h2>
+                        <button class="btn-primary btn-sm" onclick="openIncidentModal()">Create Incident</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="incidentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Severity</th>
+                                        <th>Status</th>
+                                        <th>Device</th>
+                                        <th>Created</th>
+                                        <th>Assigned To</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="incidentsTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Devices Section -->
+            <section id="devices-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Device Management</h2>
+                        <button class="btn-primary btn-sm" onclick="openDeviceModal()">Add Device</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="devicesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Device Name</th>
+                                        <th>IP Address</th>
+                                        <th>OS Type</th>
+                                        <th>Status</th>
+                                        <th>Threat Level</th>
+                                        <th>Last Seen</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="devicesTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audit Logs Section -->
+            <section id="audit-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Audit Logs</h2>
+                        <button class="btn-secondary btn-sm" onclick="exportAuditLogs()">Export CSV</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="auditTable">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Action</th>
+                                        <th>User</th>
+                                        <th>Resource Type</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="auditTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Settings</h2>
+                    </div>
+                    <div class="card-body settings-body">
+                        <div class="settings-group">
+                            <h3>Appearance</h3>
+                            <div class="form-group">
+                                <label for="themeSelect">Theme</label>
+                                <select id="themeSelect">
+                                    <option value="dark">Dark Mode</option>
+                                    <option value="light">Light Mode</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="settings-group">
+                            <h3>Notifications</h3>
+                            <div class="form-group form-group-checkbox">
+                                <input type="checkbox" id="threatNotif" checked>
+                                <label for="threatNotif">Threat Notifications</label>
+                            </div>
+                            <div class="form-group form-group-checkbox">
+                                <input type="checkbox" id="incidentNotif" checked>
+                                <label for="incidentNotif">Incident Notifications</label>
+                            </div>
+                            <div class="form-group form-group-checkbox">
+                                <input type="checkbox" id="deviceNotif" checked>
+                                <label for="deviceNotif">Device Status Notifications</label>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="incidentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Incident</h2>
+                <button class="modal-close" onclick="closeModal('incidentModal')">&times;</button>
+            </div>
+            <form id="incidentForm" onsubmit="createIncident(event)">
+                <div class="form-group">
+                    <label for="incidentTitle">Title</label>
+                    <input type="text" id="incidentTitle" required minlength="5">
+                </div>
+                <div class="form-group">
+                    <label for="incidentDesc">Description</label>
+                    <textarea id="incidentDesc" rows="4" required minlength="10"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="incidentSeverity">Severity</label>
+                        <select id="incidentSeverity" required>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="incidentPriority">Priority</label>
+                        <select id="incidentPriority" required>
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="incidentDevice">Device</label>
+                    <select id="incidentDevice" required></select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('incidentModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Device</h2>
+                <button class="modal-close" onclick="closeModal('deviceModal')">&times;</button>
+            </div>
+            <form id="deviceForm" onsubmit="createDevice(event)">
+                <div class="form-group">
+                    <label for="deviceName">Device Name</label>
+                    <input type="text" id="deviceName" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label for="deviceIp">IP Address</label>
+                    <input type="text" id="deviceIp" placeholder="Enter IP address" required>
+                </div>
+                <div class="form-group">
+                    <label for="deviceMac">MAC Address (optional)</label>
+                    <input type="text" id="deviceMac" placeholder="Enter MAC address">
+                </div>
+                <div class="form-group">
+                    <label for="deviceOs">OS Type</label>
+                    <select id="deviceOs" required>
+                        <option value="">Select OS</option>
+                        <option value="Linux">Linux</option>
+                        <option value="Windows">Windows</option>
+                        <option value="macOS">macOS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="deviceLocation">Location (optional)</label>
+                    <input type="text" id="deviceLocation" placeholder="Enter location">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('deviceModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Device</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # MongoDB Database (Development)
+  mongodb:
+    image: mongo:7-jammy
+    container_name: cybershield-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: cybershield_dev
+    volumes:
+      - mongodb_dev_data:/data/db
+    ports:
+      - "27018:27017"
+    networks:
+      - cybershield-dev-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # CyberShield Application (Development)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: cybershield-app-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/cybershield_dev?authSource=admin
+      JWT_SECRET: dev-jwt-secret-key-for-development-only
+      JWT_REFRESH_SECRET: dev-refresh-secret-key-for-development-only
+      COOKIE_SECRET: dev-cookie-secret-key-for-development-only
+      CORS_ORIGIN: http://localhost:3000
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      EMAIL_FROM: noreply@cybershield.local
+      MFA_ENABLED: false
+      ACCOUNT_LOCKOUT_ENABLED: false
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 1000
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - cybershield-dev-network
+    command: npm run dev
+
+  # MailHog (Development Email Testing)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: cybershield-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Web interface
+    networks:
+      - cybershield-dev-network
+
+volumes:
+  mongodb_dev_data:
+
+networks:
+  cybershield-dev-network:
+    driver: bridge
