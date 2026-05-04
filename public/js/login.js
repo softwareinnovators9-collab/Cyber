@@ -270,14 +270,16 @@ class AuthManager {
     async checkAuthStatus() {
         try {
             // Try to access a protected endpoint to check if authenticated
-            const response = await fetch(`${CONFIG.API_BASE_URL}/api/dashboard/stats`, {
+            const response = await fetch(`${CONFIG.API_BASE_URL}/api/dashboard`, {
                 credentials: 'include'
             });
 
             if (response.ok) {
                 const data = await response.json();
-                this.user = data.user;
-                localStorage.setItem('currentUser', JSON.stringify(data.user));
+                this.user = data.user || null;
+                if (data.user) {
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                }
                 return true;
             }
         } catch (error) {
@@ -535,8 +537,29 @@ window.exportFailedAttemptsCSV = () => {
     return csv;
 };
 
+async function showForgotPassword() {
+    const email = prompt('Enter your account email to receive password reset instructions:');
+    if (!email) return;
+
+    const sanitizedEmail = sanitizeInput(email.toLowerCase());
+    const notification = document.getElementById('notification');
+
+    if (!sanitizedEmail) {
+        showNotification('Please enter a valid email address.', 'error', notification);
+        return;
+    }
+
+    const result = await authManager.forgotPassword(sanitizedEmail);
+    if (result.success) {
+        showNotification('Password reset instructions sent to your email.', 'success', notification);
+    } else {
+        showNotification(result.error || 'Unable to send password reset email.', 'error', notification);
+    }
+}
+
 // Register the login submit handler
 window.handleLogin = handleLogin;
+window.showForgotPassword = showForgotPassword;
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {

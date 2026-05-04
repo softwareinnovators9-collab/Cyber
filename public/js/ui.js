@@ -230,25 +230,80 @@ async function exportAuditLogs() {
 
 // Settings
 function saveSettings() {
-    const settings = {
-        theme: document.getElementById('themeSelect').value,
-        notifications: {
-            threat: document.getElementById('threatNotif').checked,
-            incident: document.getElementById('incidentNotif').checked,
-            device: document.getElementById('deviceNotif').checked
-        }
-    };
+    try {
+        const settings = {
+            theme: document.getElementById('themeSelect').value,
+            notifications: {
+                threat: document.getElementById('threatNotif').checked,
+                incident: document.getElementById('incidentNotif').checked,
+                device: document.getElementById('deviceNotif').checked
+            }
+        };
 
-    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
-    showToast('Settings saved', 'success');
+        localStorage.setItem('dashboardSettings', JSON.stringify(settings));
+        showToast('Settings saved', 'success');
+    } catch (error) {
+        console.error('Failed to save dashboard settings:', error);
+        showToast('Unable to save settings', 'error');
+    }
 }
 
 // Logout
-function handleLogout() {
-    if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem(CONFIG.STORAGE.TOKEN);
-        localStorage.removeItem(CONFIG.STORAGE.USER);
-        wsManager.disconnect();
-        window.location.href = 'login.html';
+async function handleLogout() {
+    if (!confirm('Are you sure you want to logout?')) {
+        return;
+    }
+
+    try {
+        await fetch(`${CONFIG.API_BASE_URL}/api/auth/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.warn('Logout request failed:', error);
+    }
+
+    localStorage.removeItem(CONFIG.STORAGE.TOKEN);
+    localStorage.removeItem(CONFIG.STORAGE.USER);
+
+    if (typeof wsManager !== 'undefined' && wsManager?.disconnect) {
+        try {
+            wsManager.disconnect();
+        } catch (wsError) {
+            console.warn('WebSocket disconnect failed:', wsError);
+        }
+    }
+
+    window.location.href = 'login.html';
+}
+
+function showNotifications() {
+    showToast('No new notifications at the moment.', 'info');
+}
+
+function openSettingsSection() {
+    if (typeof dashboard !== 'undefined' && dashboard.switchSection) {
+        dashboard.switchSection('settings');
     }
 }
+
+function viewHealthDetails() {
+    if (typeof dashboard !== 'undefined' && dashboard.switchSection) {
+        dashboard.switchSection('threats');
+    }
+    showToast('Switching to threat details for deeper system health context.', 'info');
+}
+
+function viewThreatTimeline() {
+    if (typeof dashboard !== 'undefined' && dashboard.switchSection) {
+        dashboard.switchSection('threats');
+    }
+    showToast('Showing the full threat timeline.', 'info');
+}
+
+window.saveSettings = saveSettings;
+window.handleLogout = handleLogout;
+window.showNotifications = showNotifications;
+window.openSettingsSection = openSettingsSection;
+window.viewHealthDetails = viewHealthDetails;
+window.viewThreatTimeline = viewThreatTimeline;

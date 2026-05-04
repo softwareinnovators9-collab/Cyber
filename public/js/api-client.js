@@ -27,6 +27,7 @@ class APIClient {
         const config = {
             method,
             headers,
+            credentials: 'include',
             signal: AbortSignal.timeout(this.timeout)
         };
 

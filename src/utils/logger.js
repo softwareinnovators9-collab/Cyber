@@ -35,7 +35,11 @@ class Logger {
     writeLog(logEntry) {
         const logString = JSON.stringify(logEntry) + '\n';
 
-        fs.appendFileSync(this.logFile, logString);
+        try {
+            fs.appendFileSync(this.logFile, logString);
+        } catch (error) {
+            console.error(`Logger failed to write to ${this.logFile}:`, error.message || error);
+        }
 
         const color = {
             error: '\x1b[31m',

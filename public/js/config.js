@@ -12,6 +12,8 @@ const CONFIG = {
         RETRY_DELAY: 1000
     },
 
+    API_BASE_URL: 'http://localhost:3000',
+
     // WebSocket Configuration
     WEBSOCKET: {
         URL: 'http://localhost:3000',

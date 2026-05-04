@@ -21,8 +21,8 @@ class DashboardManager {
         this.showLoadingOverlay();
         try {
             // Check authentication
-            const token = localStorage.getItem(CONFIG.STORAGE.TOKEN);
-            if (!token) {
+            const userInfo = localStorage.getItem(CONFIG.STORAGE.USER);
+            if (!userInfo) {
                 window.location.href = 'login.html';
                 return;
             }

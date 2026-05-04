@@ -36,7 +36,7 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-logout" onclick="handleLogout()">
+                <button type="button" class="btn-logout" onclick="handleLogout()">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
@@ -55,11 +55,13 @@
                         <input type="text" placeholder="Search..." id="searchInput">
                     </div>
                     <div class="header-icons">
-                        <button class="icon-btn" id="notificationBtn" title="Notifications">
+                        <button type="button" class="icon-btn" id="notificationBtn" title="Notifications"
+                            onclick="showNotifications()">
                             <i class="fas fa-bell"></i>
                             <span class="notification-badge" id="notificationBadge">0</span>
                         </button>
-                        <button class="icon-btn" id="settingsBtn" title="Settings">
+                        <button type="button" class="icon-btn" id="settingsBtn" title="Settings"
+                            onclick="openSettingsSection()">
                             <i class="fas fa-sliders-h"></i>
                         </button>
                     </div>
@@ -80,7 +82,8 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>System Health</h2>
-                            <button class="btn-secondary btn-sm">View Details</button>
+                            <button type="button" class="btn-secondary btn-sm" onclick="viewHealthDetails()">View
+                                Details</button>
                         </div>
                         <div class="card-body">
                             <canvas id="healthChart"></canvas>
@@ -89,7 +92,8 @@
                     <div class="card">
                         <div class="card-header">
                             <h2>Threat Timeline</h2>
-                            <button class="btn-secondary btn-sm">View All</button>
+                            <button type="button" class="btn-secondary btn-sm" onclick="viewThreatTimeline()">View
+                                All</button>
                         </div>
                         <div class="card-body">
                             <div id="threatTimeline"></div>
@@ -112,9 +116,12 @@
                     <div class="card-header">
                         <h2>Security Threats</h2>
                         <div class="filter-buttons">
-                            <button class="btn-secondary btn-sm" onclick="filterThreats('critical')">Critical</button>
-                            <button class="btn-secondary btn-sm" onclick="filterThreats('high')">High</button>
-                            <button class="btn-secondary btn-sm" onclick="filterThreats('all')">All</button>
+                            <button type="button" class="btn-secondary btn-sm"
+                                onclick="filterThreats('critical')">Critical</button>
+                            <button type="button" class="btn-secondary btn-sm"
+                                onclick="filterThreats('high')">High</button>
+                            <button type="button" class="btn-secondary btn-sm"
+                                onclick="filterThreats('all')">All</button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -143,7 +150,8 @@
                 <div class="card">
                     <div class="card-header">
                         <h2>Incident Management</h2>
-                        <button class="btn-primary btn-sm" onclick="openIncidentModal()">Create Incident</button>
+                        <button type="button" class="btn-primary btn-sm" onclick="openIncidentModal()">Create
+                            Incident</button>
                     </div>
                     <div class="card-body">
                         <div class="table-container">
@@ -171,7 +179,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h2>Device Management</h2>
-                        <button class="btn-primary btn-sm" onclick="openDeviceModal()">Add Device</button>
+                        <button type="button" class="btn-primary btn-sm" onclick="openDeviceModal()">Add Device</button>
                     </div>
                     <div class="card-body">
                         <div class="table-container">
@@ -199,7 +207,8 @@
                 <div class="card">
                     <div class="card-header">
                         <h2>Audit Logs</h2>
-                        <button class="btn-secondary btn-sm" onclick="exportAuditLogs()">Export CSV</button>
+                        <button type="button" class="btn-secondary btn-sm" onclick="exportAuditLogs()">Export
+                            CSV</button>
                     </div>
                     <div class="card-body">
                         <div class="table-container">
@@ -253,7 +262,7 @@
                                 <label for="deviceNotif">Device Status Notifications</label>
                             </div>
                         </div>
-                        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+                        <button type="button" class="btn-primary" onclick="saveSettings()">Save Settings</button>
                     </div>
                 </div>
             </section>
@@ -265,7 +274,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Create Incident</h2>
-                <button class="modal-close" onclick="closeModal('incidentModal')">&times;</button>
+                <button type="button" class="modal-close" onclick="closeModal('incidentModal')">&times;</button>
             </div>
             <form id="incidentForm" onsubmit="createIncident(event)">
                 <div class="form-group">
@@ -312,7 +321,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Add Device</h2>
-                <button class="modal-close" onclick="closeModal('deviceModal')">&times;</button>
+                <button type="button" class="modal-close" onclick="closeModal('deviceModal')">&times;</button>
             </div>
             <form id="deviceForm" onsubmit="createDevice(event)">
                 <div class="form-group">
