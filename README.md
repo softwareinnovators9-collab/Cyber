@@ -1,421 +1,98 @@
-# CyberShield - Enterprise Security Operations Platform
-
-A modern, real-time security operations platform for threat detection, incident management, and device monitoring with enterprise-grade security features.
-
-## Features
-
-✅ **Real-Time Threat Detection** - WebSocket-based live threat monitoring with persistent storage
-✅ **Incident Management** - Create, track, and resolve security incidents with timeline tracking
-✅ **Device Management** - Centralized device monitoring and control with ownership validation
-✅ **Audit Logging** - Complete security event history with CSV export
-✅ **User Management** - Role-based access control with advanced authentication
-✅ **Real-Time Alerts** - Instant notifications for security events
-✅ **Advanced Security** - JWT with httpOnly cookies, MFA, account lockout, password reset
-✅ **MongoDB Integration** - Full persistence with Mongoose ODM
-✅ **Docker Support** - Containerized deployment for dev and production
-✅ **Comprehensive Testing** - Jest + Supertest with 99%+ coverage
-✅ **Responsive UI** - Modern, secure dashboard with DOMPurify sanitization
-✅ **99.99% Uptime** - Enterprise-grade reliability with health checks
-
-## System Architecture
-
-```
-CyberShield/
-├── src/
-│   ├── server.js                 # Main server with MongoDB & security
-│   ├── config/
-│   │   └── environment.js        # Environment configuration
-│   ├── middleware/
-│   │   ├── auth.js              # JWT auth with MFA & roles
-│   │   ├── errorHandler.js      # Global error handling
-│   │   └── requestValidator.js  # Request validation
-│   ├── models/
-│   │   ├── User.js              # User model with security features
-│   │   ├── Device.js            # Device management
-│   │   ├── Incident.js          # Incident tracking
-│   │   ├── Threat.js            # Threat detection
-│   │   └── AuditLog.js          # Security audit logging
-│   ├── services/
-│   │   ├── database.js          # MongoDB operations
-│   │   └── websocket.js         # WebSocket management
-│   ├── routes/
-│   │   ├── auth.js              # Auth with MFA & lockout
-│   │   ├── dashboard.js
-│   │   ├── devices.js           # Role-based device access
-│   │   ├── incidents.js
-│   │   ├── threats.js
-│   │   ├── audits.js            # Secure CSV export
-│   │   └── users.js
-│   └── utils/
-│       ├── logger.js            # Structured logging
-│       └── jwt.js               # JWT with refresh tokens
-├── public/
-│   ├── index.html               # Landing page
-│   ├── login.html               # Secure login (no demo creds)
-│   ├── dashboard.html           # Main dashboard
-│   ├── css/
-│   │   ├── login.css
-│   │   ├── dashboard.css
-│   │   └── components.css
-│   └── js/
-│       ├── config.js
-│       ├── api-client.js        # Secure API client
-│       ├── websocket.js
-│       ├── login.js             # Auth with DOMPurify
-│       ├── dashboard.js
-│       └── ui.js
-├── tests/                       # Comprehensive test suite
-│   ├── auth.test.js
-│   ├── middleware.test.js
-│   ├── database.test.js
-│   └── setup.js
-├── logs/                        # Application logs
-├── Dockerfile                   # Production container
-├── Dockerfile.dev               # Development container
-├── docker-compose.yml           # Production stack
-├── docker-compose.dev.yml       # Development stack
-├── .env.example                 # Environment template
-├── .env.dev                     # Development config
-├── healthcheck.js               # Docker health checks
-├── package.json
-└── README.md
-```
-
-## Quick Start
-
-### Docker (Recommended)
-
-#### Development
-```bash
-# Clone repository
-git clone https://github.com/Munsoft11/CyberShield.git
-cd CyberShield
-
-# Start development environment
-docker-compose -f docker-compose.dev.yml up -d
-
-# View logs
-docker-compose -f docker-compose.dev.yml logs -f app
-
-# Access application
-# - App: http://localhost:3000
-# - MailHog: http://localhost:8025
-```
-
-#### Production
-```bash
-# Configure environment
-cp .env.example .env
-# Edit .env with your production values
-
-# Start production stack
-docker-compose up -d
-
-# Check health
-curl http://localhost:3000/api/health
-```
-
-### Manual Installation
-
-#### Prerequisites
-- Node.js >= 18.0.0
-- MongoDB >= 7.0
-- npm or yarn
-
-#### Setup
-```bash
-# Clone repository
-git clone https://github.com/Munsoft11/CyberShield.git
-cd CyberShield
-
-# Install dependencies
-npm install
-
-# Configure environment
-cp .env.dev .env
-# Edit .env with your configuration
-
-# Start MongoDB (if not using Docker)
-mongod
-
-# Start application
-npm start
-```
-
-## Development
-
-```bash
-# Development with auto-reload
-npm run dev
-
-# Run all tests
-npm test
-
-# Run specific test suites
-npm run test:auth
-npm run test:middleware
-npm run test:database
-
-# Watch mode
-npm run test:watch
-
-# Lint code
-npm run lint
-
-# Format code
-npm run format
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/login` - User login with lockout protection
-- `POST /api/auth/register` - User registration with email verification
-- `POST /api/auth/logout` - Secure logout
-- `POST /api/auth/refresh` - Refresh access token
-- `POST /api/auth/forgot-password` - Password reset request
-- `POST /api/auth/reset-password` - Password reset confirmation
-- `POST /api/auth/verify-email` - Email verification
-- `POST /api/auth/mfa/setup` - Setup MFA (TOTP)
-- `POST /api/auth/mfa/verify` - Verify MFA code
-- `GET /api/auth/me` - Get current user profile
-
-### Dashboard
-- `GET /api/dashboard` - Get dashboard statistics
-- `GET /api/dashboard/health` - System health status
-- `GET /api/dashboard/timeline` - Activity timeline
-
-### Devices (Role-based access)
-- `GET /api/devices` - List devices (filtered by ownership)
-- `GET /api/devices/:id` - Get device details
-- `POST /api/devices` - Create device (admin only)
-- `PUT /api/devices/:id` - Update device (owner/admin)
-- `DELETE /api/devices/:id` - Delete device (admin only)
-
-### Incidents
-- `GET /api/incidents` - List incidents
-- `GET /api/incidents/:id` - Get incident details
-- `POST /api/incidents` - Create incident
-- `PUT /api/incidents/:id` - Update incident
-- `POST /api/incidents/:id/timeline` - Add timeline entry
-- `DELETE /api/incidents/:id` - Delete incident
-
-### Threats
-- `GET /api/threats` - List threats
-- `GET /api/threats/:id` - Get threat details
-- `POST /api/threats` - Create threat
-- `PATCH /api/threats/:id/status` - Update threat status
-- `PATCH /api/threats/:id/containment` - Update containment
-
-### Audit Logs
-- `GET /api/audit-logs` - List audit logs
-- `GET /api/audit-logs/user/:userId` - User activity
-- `GET /api/audit-logs/export/csv` - Export logs (secure CSV)
-
-### Users (Admin only)
-- `GET /api/users` - List users
-- `GET /api/users/:id` - Get user details
-- `PUT /api/users/:id` - Update user
-- `DELETE /api/users/:id` - Delete user
-
-### Health Check
-- `GET /api/health` - System health with database status
-
-## WebSocket Events
-
-### Client to Server
-- `authenticate` - Authenticate WebSocket connection
-- `subscribe` - Subscribe to real-time updates
-- `unsubscribe` - Unsubscribe from updates
-
-### Server to Client
-- `threat-detected` - New threat detected
-- `incident-created` - New incident created
-- `incident-updated` - Incident status changed
-- `device-status-changed` - Device status update
-- `system-alert` - System-wide alerts
-- `user-notification` - User-specific notifications
-
-## Security Features
-
-- ✅ **JWT Authentication** - httpOnly cookies, no localStorage
-- ✅ **Refresh Tokens** - Secure token rotation
-- ✅ **Multi-Factor Authentication** - TOTP-based MFA
-- ✅ **Account Lockout** - Progressive lockout after failed attempts
-- ✅ **Password Reset** - Secure email-based password reset
-- ✅ **Email Verification** - Account activation via email
-- ✅ **Role-Based Access Control** - Admin, User, Auditor roles
-- ✅ **Ownership Validation** - Users can only access their resources
-- ✅ **Rate Limiting** - Configurable request throttling
-- ✅ **CORS Protection** - Strict origin validation
-- ✅ **Helmet Security Headers** - Comprehensive security headers
-- ✅ **Input Validation** - Server-side validation with express-validator
-- ✅ **XSS Protection** - DOMPurify sanitization
-- ✅ **CSRF Protection** - SameSite cookies
-- ✅ **Audit Logging** - Complete security event tracking
-- ✅ **Secure CSV Export** - Injection-safe CSV generation
-
-## Database Schema
-
-### User
-- Email, password hash, roles, MFA settings
-- Account lockout status, email verification
-- Refresh tokens, security preferences
-
-### Device
-- Name, IP, OS, owner, status, threat level
-- Last seen timestamp, location data
-
-### Incident
-- Title, description, severity, status
-- Assigned user, timeline entries
-- Creation and resolution timestamps
-
-### Threat
-- Type, severity, source/target IPs
-- Description, indicators, containment status
-- Detection timestamp, threat score
-
-### AuditLog
-- Action, user, resource type/ID
-- Timestamp, IP address, user agent
-- Success/failure status, metadata
-
-## Testing
-
-Comprehensive test suite with Jest and Supertest:
-
-```bash
-# Run all tests with coverage
-npm test
-
-# Test output includes:
-# - Authentication flows (login, MFA, lockout)
-# - Authorization middleware (roles, ownership)
-# - Database operations (CRUD, validation)
-# - API endpoints (success/error cases)
-# - Security features (input validation, sanitization)
-```
-
-## Configuration
-
-### Environment Variables
-
-```env
-# Application
-NODE_ENV=production
-PORT=3000
-
-# Database
-MONGODB_URI=mongodb://username:password@localhost:27017/cybershield
-
-# JWT Configuration
-JWT_SECRET=your-super-secure-jwt-secret
-JWT_REFRESH_SECRET=your-super-secure-refresh-secret
-COOKIE_SECRET=your-super-secure-cookie-secret
-
-# Security
-CORS_ORIGIN=https://yourdomain.com
-MFA_ENABLED=true
-ACCOUNT_LOCKOUT_ENABLED=true
-
-# Email (SMTP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-EMAIL_FROM=noreply@yourdomain.com
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-## Docker Deployment
-
-### Production Stack
-- **App Container**: Node.js 18 with multi-stage build
-- **MongoDB**: Official MongoDB 7 image
-- **Redis**: Optional session storage (Redis 7)
-- **Health Checks**: Automatic container health monitoring
-- **Security**: Non-root user, minimal attack surface
-
-### Development Stack
-- **Hot Reload**: Volume mounting for live development
-- **MailHog**: Email testing interface
-- **Debug Tools**: Full development dependencies
-- **Easy Setup**: Single command deployment
-
-## Monitoring & Logging
-
-Structured logging with configurable levels:
-- `error` - Critical errors and security events
-- `warn` - Warning conditions
-- `info` - General information
-- `debug` - Detailed debugging information
-
-Logs stored in `./logs/` with rotation and archival.
-
-## Performance & Reliability
-
-- **Real-time Communication**: WebSocket with automatic reconnection
-- **Database Optimization**: Indexed queries, connection pooling
-- **Caching Ready**: Redis integration points
-- **Health Monitoring**: Comprehensive health checks
-- **Error Recovery**: Graceful error handling and recovery
-- **Load Balancing Ready**: Stateless design
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow ESLint configuration
-- Add tests for new features
-- Update documentation
-- Use conventional commits
-- Security-first approach
-
-## Security Considerations
-
-- **No Default Credentials**: All demo credentials removed
-- **Secure Headers**: Helmet with strict CSP
-- **Input Sanitization**: All user inputs validated and sanitized
-- **Token Security**: httpOnly cookies, secure flags
-- **Audit Trail**: Complete logging of all security events
-- **Vulnerability Scanning**: Regular dependency updates
-- **Container Security**: Minimal base images, non-root execution
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/Munsoft11/CyberShield/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Munsoft11/CyberShield/discussions)
-- **Documentation**: [Wiki](https://github.com/Munsoft11/CyberShield/wiki)
-
-## Roadmap
-
-- [x] MongoDB integration with Mongoose
-- [x] Advanced authentication (MFA, lockout, password reset)
-- [x] Security hardening (no JWT fallback, role guards, sanitization)
-- [x] Threat persistence
-- [x] Comprehensive Jest test suite
-- [x] Docker containerization (dev/prod)
-- [ ] Advanced threat analytics with ML
-- [ ] Multi-tenant architecture
-- [ ] Mobile application
-- [ ] Advanced reporting and dashboards
-- [ ] SIEM integration
-- [ ] Automated incident response
-- [ ] Compliance reporting (SOC 2, ISO 27001)
-
----
-
-**CyberShield** - Enterprise-grade security operations with confidence.
+Description of Software Test Metrics Implementation in CyberShield
+In the CyberShield project, we added a complete set of software test metrics to continuously measure the quality, reliability, and effectiveness of the system during normal use. These metrics run silently in the background without affecting the user interface or dashboard performance. The goal was to collect real, practical data about how well the application works, how easy it is to test, and how many issues might still remain  all stored automatically so we can analyze results later for our empirical study.
+Overall Implementation Approach
+We created three small, independent JavaScript files that work separately from each other and from the existing page visit and load-time trackers;
+-	`test-metrics.js` – Handles basic test execution and success rates
+-	`built-in-test-harness.js` – Uses standard browser tools to check the system
+Each file;
+-	Starts automatically when any page loads (after a short delay so all data is ready)
+-	Collects information while the user interacts with the dashboard, devices, threats, or other sections
+-	Saves results as simple JSON objects in the browser’s localStorage
+-	Keeps only the most recent 30 runs to avoid filling up memory
+
+Because everything is independent and uses only built-in browser features, the metrics add zero extra load and work even if the internet is offline.
+Key Metrics and How They Work
+1.	Test Pass, Failure, and Pending Rates
+The system runs a set of quick automatic checks on the sample data and core functions (for example, making sure device lists load correctly, filters work, and time displays update).  
+  It counts how many checks succeed, how many fail, and notes any that could not run.  
+   These counts are turned into simple percentages (e.g., “92% of tests passed”).  
+   Results are saved under a dedicated key so we can see trends over time.
+2.	 Test Coverage
+   Two practical coverage numbers are calculated automatically;
+-	GUI coverage. The code counts how many visible elements (buttons, cards, rows, modals, search boxes, etc.) are present and active on the current page.  
+-	Component coverage. It checks which major JavaScript modules (dashboard, devices, threats, etc.) have been loaded and are functioning.  
+-	These give us a clear picture of how much of the interface and code is actually being exercised during normal use.
+3.	Software Testability (Controllability)
+We look at the main decision points in the code (such as risk-level filters, modal open/close logic, and search functions).  
+For each decision point we check whether it can be controlled directly by user actions or if it depends on hidden internal states.  
+A simple average score is calculated (between 0 and 1) to show how easy or difficult it is to test each part of the system.  
+Higher scores mean the code is more straightforward to verify.
+4.	Remaining Defects Estimation
+To estimate how many hidden problems might still exist, the system “seeds” a few fake issues into the sample data.  
+It then runs the regular checks and counts how many of those seeded issues are caught.  
+Using the ratio of caught vs. total seeded issues, it estimates the total number of remaining real defects.
+This gives us a useful number we can compare across different versions of the project.
+Supporting Built-in Test Mechanisms
+To make the metrics more reliable, we also added four lightweight built-in checks that run every time;
+-	Simple assertion checks on data and functions
+-	Automatic catching of any runtime errors
+-	Performance timing of key operations (using the browser’s built-in timing tools)
+-	Validation that important page elements exist and respond to clicks
+All of these feed directly into the four main metrics above.
+ How to Access and Use the Data
+After opening any page, the metrics finish collecting within a couple of seconds.  
+This prints all four metrics with timestamps and full history.  
+The data can be copied into a spreadsheet for charts, averages, or inclusion in our final report.
+
+A table showing the tests made on our project
+
+Feature / Module,Test ID,Test Description,Action / Input,Expected Result
+Dashboard,D1,View overall security status,Open the dashboard page,"Displays stat cards, threat trend chart, and recent activity table correctly"
+
+Dashboard,D2,Refresh dashboard data,Click any refresh button (if available),All cards and charts update with latest mock values without page reload
+
+Devices Inventory,DV1,List all devices,Navigate to Devices page,"Table shows all devices with correct risk levels, status, and details"
+
+Devices Inventory,DV2,Filter devices by risk level,"Select ""High"" risk filter",Only high-risk devices are displayed
+
+Devices Inventory,DV3,Quarantine a device,"Click ""Quarantine"" on a device row","Device status changes to ""Quarantined"", toast notification appears"
+
+Devices Inventory,DV4,Search for a specific device,Type device name or IP in search box,Matching devices appear; non-matching ones are hidden
+
+Threats Tracking,TH1,Display all active threats,Navigate to Threats page,"Threat list loads with severity, type, and status"
+
+Threats Tracking,TH2,Filter threats by severity,"Select ""Critical"" severity filter",Only critical threats are shown
+
+Threats Tracking,TH3,Assign a threat to a user,Open threat details and assign to a team member,"Assignment updates, confirmation message shown"
+
+Incidents Management,IN1,Create a new incident,"Click ""Add Incident"" and fill required fields",New incident appears in the table with correct details
+
+Incidents Management,IN2,Update incident status,Change status of an existing incident,Status badge updates immediately in the table
+
+Incidents Management,IN3,Delete an incident,Click delete icon on an incident,Incident is removed from the list
+
+Audit Logs,AU1,View complete audit trail,Navigate to Audit page,All log entries are displayed with timestamps and actions
+
+Audit Logs,AU2,Search audit logs,"Enter keyword (e.g., ""login"") in search box",Only matching log entries are shown
+
+Audit Logs,AU3,Export audit logs,Click Export CSV button,A CSV file downloads containing all visible log entries
+
+Users Management,US1,List all system users,Navigate to Users page,"User table displays names, roles, and emails"
+
+Users Management,US2,Add a new user,"Fill and submit ""Add User"" form",New user appears in the table with correct role
+
+Users Management,US3,Change user role,Edit an existing user and update role,Role updates and is reflected in the table
+
+Navigation & Layout,NAV1,Switch between all main sections,Click each sidebar menu item,Correct page loads smoothly without errors
+
+Navigation & Layout,NAV2,Responsive layout on mobile view,Resize browser window to mobile size,Layout adjusts properly; all buttons and tables remain usable
+
+General Functionality,GEN1,Toast notifications,Perform any action that triggers a notification,Toast appears and disappears automatically
+
+General Functionality,GEN2,Modal dialog handling,Open any modal (add/edit) and cancel,Modal closes without saving changes
+
+General Functionality,GEN3,Data persistence across refreshes,Make changes then refresh the page,"Changes (e.g., quarantined device, new incident) remain visible"
+
+Error Handling,ERR1,Invalid input in forms,Submit form with missing required fields,Form shows validation error and does not submit
+
+Error Handling,ERR2,Search with no results,Search for a non-existent device or threat,"""No results"" message or empty state is displayed"
